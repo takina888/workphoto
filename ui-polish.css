@@ -15,6 +15,10 @@ button{border-radius:10px}
 .topbar .lens-logo{width:32px;height:32px}.topbar .lens-logo span{font-size:12px}
 .brand-name{font-size:16px!important;font-weight:750!important;letter-spacing:.01em}.brand-name small{font-size:12px!important;font-weight:600!important}.brand-sub{font-size:12px!important;font-weight:700!important;letter-spacing:.08em}
 .icon-btn{width:44px;height:44px!important;min-height:44px;border:0;background:transparent;color:var(--navy);font-size:22px}
+.line-icon{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn .line-icon,.round-btn .line-icon,.camera-line-btn .line-icon{margin:auto}
+.lens-logo{position:relative;overflow:hidden;background:radial-gradient(circle at 50% 50%,#315f7a 0 38%,#17384f 39% 56%,#7fa9c3 57% 63%,#17384f 64% 78%,#d8e6ee 79% 100%)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}
+.lens-logo::before{content:'';position:absolute;inset:22%;border:1px solid rgba(255,255,255,.42);border-radius:50%}.lens-logo i{position:absolute;left:27%;top:22%;width:20%;height:10%;border-radius:50%;background:rgba(255,255,255,.64);transform:rotate(-25deg)}.lens-logo span{position:relative;z-index:1;text-shadow:0 1px 2px rgba(8,28,43,.45)}
 .bottom-nav{display:none!important}
 .view{padding-bottom:0!important;background:var(--paper)}
 .soft-btn,.primary-small,.danger-small,.primary-btn,.danger-btn{min-height:44px;border-radius:10px!important;padding:9px 13px;font-size:14px;font-weight:700!important;box-shadow:none!important}
@@ -23,30 +27,31 @@ button{border-radius:10px}
 
 /* Camera: the preview owns the screen. */
 html[data-view="camera"] .app-shell{height:100dvh;min-height:100dvh}
-html[data-view="camera"] .topbar{position:absolute!important;inset:0 0 auto;z-index:90;height:calc(52px + var(--safe-top))!important;min-height:0;padding:var(--safe-top) 12px 0!important;border:0;background:linear-gradient(180deg,rgba(5,15,22,.68),rgba(5,15,22,0));color:#fff}
-html[data-view="camera"] .topbar .brand-wrap{gap:7px}html[data-view="camera"] .topbar .lens-logo{width:28px;height:28px;background:radial-gradient(circle,#3c708d 0 50%,#142f43 51% 74%,rgba(255,255,255,.9) 75%)}
-html[data-view="camera"] .topbar .brand-name{color:#fff!important;font-size:14px!important}html[data-view="camera"] .topbar .brand-name small{display:inline;color:rgba(255,255,255,.78);font-size:12px!important}html[data-view="camera"] .topbar .brand-sub{display:none}
-html[data-view="camera"] .topbar .icon-btn{color:#fff;background:rgba(6,17,24,.28);border:1px solid rgba(255,255,255,.18)}
-html[data-view="camera"] main,html[data-view="camera"] #cameraView{height:100%;min-height:0;overflow:hidden}
-#cameraView{position:relative;padding:0!important;background:#081116}
-.camera-stage{height:100%;min-height:100%!important;background:#081116}
+html[data-view="camera"] .topbar{display:none!important}
+html[data-view="camera"] main{height:100%;min-height:0;overflow:hidden}
+#cameraView{position:relative;height:100%;min-height:0;display:none;flex-direction:column;padding:0!important;background:#081116}
+#cameraView.active{display:flex!important}
+.camera-control-strip{height:calc(52px + var(--safe-top));flex:0 0 calc(52px + var(--safe-top));display:grid;grid-template-columns:48px 1fr 48px;align-items:end;padding:var(--safe-top) 8px 4px;background:var(--navy);color:#fff;z-index:20}
+.camera-line-btn{width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:#dfeaf0;padding:0}.camera-line-btn:active{background:rgba(255,255,255,.1)}
+#cameraBackBtn{grid-column:1;justify-self:start}.camera-control-strip .capture-mode-switch{grid-column:2}.camera-control-strip #cameraSettingsBtn{grid-column:3;justify-self:end}
+.camera-stage{position:relative;flex:1 1 auto;height:auto;min-height:0!important;background:#081116}
 .camera-stage video{object-fit:cover!important}
 .camera-top-controls{display:none!important}
-.camera-overlay-status{position:absolute;z-index:7;left:12px;top:calc(60px + var(--safe-top));display:flex;gap:6px;pointer-events:none}
-.camera-overlay-status span{display:inline-flex;align-items:center;min-height:30px;padding:5px 9px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(6,17,24,.42);color:#fff;font-size:12px;font-weight:650;backdrop-filter:blur(7px)}
-.camera-status-row{position:absolute!important;z-index:8;left:12px;right:auto;top:calc(98px + var(--safe-top));bottom:auto;display:block!important;padding:0!important;border:0!important;background:transparent!important}
+.camera-overlay-status{position:absolute;z-index:7;left:10px;top:10px;display:flex;gap:5px;pointer-events:none}
+.camera-overlay-status span{display:inline-flex;align-items:center;min-height:28px;padding:4px 8px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(6,17,24,.28);color:#fff;font-size:12px;font-weight:650;backdrop-filter:blur(4px)}
+.camera-status-row{position:absolute!important;z-index:8;left:10px;right:auto;top:calc(92px + var(--safe-top));bottom:auto;display:block!important;padding:0!important;border:0!important;background:transparent!important}
 .camera-status-row #locationText,.camera-status-row #openImportBtn{display:none!important}
-.context-chip{width:auto;max-width:min(70vw,310px);min-height:44px!important;padding:7px 11px!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:999px!important;background:rgba(6,17,24,.45)!important;color:#fff!important;font-size:12px!important;backdrop-filter:blur(7px)}
+.context-chip{width:auto;max-width:min(70vw,310px);min-height:44px!important;padding:7px 11px!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:999px!important;background:rgba(6,17,24,.3)!important;color:#fff!important;font-size:12px!important;backdrop-filter:blur(4px)}
 .context-chip b{font-size:12px!important;color:#fff!important;font-weight:650}.context-chip span{font-size:12px!important;color:rgba(255,255,255,.9);font-weight:600!important}
 .camera-hint{display:none!important}
 .camera-bottom-controls{left:18px;right:18px;bottom:calc(14px + var(--safe-bottom));grid-template-columns:60px 1fr 60px}
-.thumb-btn,.round-btn{width:52px;height:52px;border-radius:15px;border:1.5px solid rgba(255,255,255,.86);background:rgba(5,15,22,.42);backdrop-filter:blur(8px)}
-.round-btn{font-size:23px}.thumb-btn span{font-size:12px}
+.thumb-btn,.round-btn{width:52px;height:52px;border-radius:15px;border:1.5px solid rgba(255,255,255,.78);background:rgba(5,15,22,.26);backdrop-filter:blur(4px)}
+.round-btn{font-size:23px;padding:0}.thumb-btn span{font-size:12px}
 .shutter{width:78px;height:78px;border-width:4px}.shutter span{width:60px;height:60px}.shutter.video-mode span{width:56px;height:56px;background:#d84b4b}.shutter.recording span{width:30px;height:30px;border-radius:8px}
-.capture-mode-switch{position:absolute;z-index:9;left:50%;bottom:calc(104px + var(--safe-bottom));transform:translateX(-50%);display:flex;padding:3px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(5,15,22,.48);backdrop-filter:blur(8px)}
-.capture-mode-switch button{min-width:58px;min-height:44px;padding:7px 12px;border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.78);font-size:13px;font-weight:650}.capture-mode-switch button.active{background:#fff;color:var(--navy)}
-.recording-status{position:absolute;z-index:9;left:50%;top:calc(62px + var(--safe-top));transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:rgba(5,15,22,.6);color:#fff;font-size:13px;font-variant-numeric:tabular-nums}.recording-status i{width:9px;height:9px;border-radius:50%;background:#e05252;animation:record-pulse 1s infinite}@keyframes record-pulse{50%{opacity:.35}}
-.zoom-panel{bottom:calc(154px + var(--safe-bottom));padding:6px 9px;border-radius:999px;background:rgba(5,15,22,.48)}.zoom-panel input{width:118px}.zoom-panel output{font-size:12px}
+.capture-mode-switch{justify-self:center;display:flex;padding:3px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.06)}
+.capture-mode-switch button{min-width:70px;min-height:44px;padding:6px 14px;border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.78);font-size:14px;font-weight:650}.capture-mode-switch button.active{background:#fff;color:var(--navy)}
+.recording-status{position:absolute;z-index:9;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:rgba(5,15,22,.46);color:#fff;font-size:13px;font-variant-numeric:tabular-nums}.recording-status i{width:9px;height:9px;border-radius:50%;background:#e05252;animation:record-pulse 1s infinite}@keyframes record-pulse{50%{opacity:.35}}
+.zoom-panel{bottom:calc(112px + var(--safe-bottom));padding:6px 9px;border-radius:999px;background:rgba(5,15,22,.34)}.zoom-panel input{width:118px}.zoom-panel output{font-size:12px}
 .exposure-panel{right:10px;top:40%;grid-template-columns:18px 96px 38px;padding:8px;border-radius:999px;background:rgba(5,15,22,.5)}.exposure-panel output{font-size:12px}
 .focus-ring{border-color:#fff;width:64px;height:64px;border-radius:10px}.focus-ring.locked{border-color:#f0c85c}.focus-ring.locked::after{content:'LOCK';position:absolute;left:50%;top:100%;transform:translate(-50%,7px);padding:3px 6px;border-radius:99px;background:rgba(5,15,22,.65);color:#fff;font-size:12px}
 
@@ -56,10 +61,11 @@ html[data-view="camera"] main,html[data-view="camera"] #cameraView{height:100%;m
 .camera-guides.show-center .guide-center-v,.camera-guides.show-center .guide-center-h{display:block;background:rgba(255,255,255,.7)}.guide-center-v{top:0;bottom:0;left:50%;width:1px}.guide-center-h{left:0;right:0;top:50%;height:1px}
 .camera-guides.show-front .guide-front-frame{display:block;left:11%;right:11%;top:18%;bottom:18%;border:1.5px solid rgba(255,255,255,.72);border-radius:12px;background:transparent}
 .level-guide{position:absolute;left:50%;top:50%;display:none;width:92px;height:24px;transform:translate(-50%,-50%) rotate(var(--level-roll,0deg));border-bottom:2px solid rgba(255,255,255,.78)}.camera-guides.show-level .level-guide{display:block}.level-guide span{position:absolute;left:50%;bottom:-5px;width:10px;height:10px;transform:translateX(-50%);border-radius:50%;background:#fff}.level-guide.is-level{border-color:#77bb8a}.level-guide.is-level span{background:#77bb8a}
+.capture-ratio-guide{position:absolute;z-index:6;left:50%;top:50%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.62);border-radius:3px;pointer-events:none;box-shadow:0 0 0 999px rgba(0,0,0,.08)}.capture-ratio-guide span{position:absolute;right:5px;top:5px;padding:2px 5px;border-radius:5px;background:rgba(5,15,22,.38);color:#fff;font-size:12px}
 
 /* Album, viewer and contextual ledger */
 .album-filter-bar{grid-template-columns:minmax(0,1fr) 118px!important;padding:0 16px 10px!important;gap:7px}.album-filter-bar input,.album-filter-bar select{font-size:14px;border-radius:10px!important}
-.album-grid{gap:2px;padding:0 2px 16px}.album-item .tag{font-size:12px;border-radius:6px}.selection-bar{position:sticky;top:0;z-index:10;margin:0 10px 10px;padding:8px 10px;border-radius:10px;background:#eef3f6;border-color:#d7e2e8;font-size:14px}
+.album-grid{gap:2px;padding:0 2px 16px}.album-item .tag{font-size:12px;border-radius:6px}.album-item .saved-badge{position:absolute;right:5px;top:5px;z-index:3;padding:3px 6px;border-radius:6px;background:rgba(20,47,67,.84);color:#fff;font-size:12px;font-weight:700}.selection-bar{position:sticky;top:0;z-index:10;margin:0 10px 10px;padding:9px 10px;border-radius:10px;background:#eef3f6;border-color:#d7e2e8;font-size:14px;display:grid;gap:8px}.selection-summary,.selection-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.selection-summary>span{margin-right:auto}.selection-bar .soft-btn,.selection-bar .primary-small,.selection-bar .danger-small{min-height:44px}
 .viewer-view{min-height:0!important}.viewer-stage{height:min(68dvh,720px);min-height:360px}.viewer-details{padding:12px 16px}.viewer-details h1{font-size:16px!important;font-weight:700}.viewer-details p{font-size:12px!important}.meta-chip{font-size:12px}.viewer-actions{grid-template-columns:1.3fr 1.3fr 1fr auto!important;gap:7px;padding:9px 12px calc(10px + var(--safe-bottom))}.viewer-actions button{min-height:46px;font-size:14px!important}.viewer-delete-link{border:0;background:transparent;color:#a43f3f;padding:8px;font-size:13px!important}
 .sticky-actions{bottom:0!important;width:100%!important;padding:12px 16px calc(12px + var(--safe-bottom));background:linear-gradient(transparent,rgba(244,246,247,.98) 28%)}
 

@@ -18,23 +18,31 @@
   <div class="desktop-shell market-base-shell">
     <div id="app" class="app-shell">
     <header class="topbar">
-      <button id="backBtn" class="icon-btn" aria-label="戻る" title="戻る" hidden>‹</button>
+      <button id="backBtn" class="icon-btn" aria-label="戻る" title="戻る" hidden><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button>
       <div class="brand-wrap">
-        <div class="lens-logo" aria-hidden="true"><span>WP</span></div>
+        <div class="lens-logo" aria-hidden="true"><i></i><span>WP</span></div>
         <div>
           <div class="brand-name">WORK PHOTO <small>for Machines</small></div>
           <div class="brand-sub">AI FREE PHOTO EDITOR</div>
         </div>
       </div>
-      <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙</button>
+      <button id="settingsBtn" class="icon-btn" aria-label="設定"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3V9.6h.1A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06L7.06 3.7l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.4 9c.1.4.3.8.6 1 .3.3.7.4 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.7.6Z"></path></svg></button>
     </header>
 
     <main>
       <section id="cameraView" class="view active">
+        <div class="camera-control-strip">
+          <button id="cameraBackBtn" class="camera-line-btn" type="button" aria-label="戻る" hidden><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button>
+          <div class="capture-mode-switch" role="group" aria-label="撮影の種類">
+            <button id="photoModeBtn" type="button" class="active" aria-pressed="true">写真</button>
+            <button id="videoModeBtn" type="button" aria-pressed="false">動画</button>
+          </div>
+          <button id="cameraSettingsBtn" class="camera-line-btn" type="button" aria-label="撮影設定"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3V9.6h.1A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06L7.06 3.7l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.4 9c.1.4.3.8.6 1 .3.3.7.4 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.7.6Z"></path></svg></button>
+        </div>
         <div class="camera-stage" id="cameraStage">
           <video id="cameraVideo" playsinline autoplay muted></video>
           <div id="cameraPlaceholder" class="camera-placeholder">
-            <div class="lens-logo large"><span>WP</span></div>
+            <div class="lens-logo large"><i></i><span>WP</span></div>
             <strong>カメラを起動します</strong>
             <small>カメラが使えない場合は左下から写真を選べます</small>
           </div>
@@ -60,6 +68,7 @@
             <i class="guide-front-frame"></i>
             <div id="levelGuide" class="level-guide"><span></span></div>
           </div>
+          <div id="captureRatioGuide" class="capture-ratio-guide" data-ratio="4:3" aria-hidden="true"><span>4:3</span></div>
           <div id="focusRing" class="focus-ring" hidden></div>
           <div id="exposurePanel" class="exposure-panel" hidden>
             <span aria-hidden="true">☀</span><input id="exposureSlider" aria-label="露出・明るさ補正" type="range" min="-2" max="2" step="0.1" value="0"><output id="exposureValue">0.0</output>
@@ -67,15 +76,11 @@
           <div id="zoomPanel" class="zoom-panel" hidden>
             <input id="zoomSlider" type="range" min="1" max="1" step="0.1" value="1"><output id="zoomValue">1.0×</output>
           </div>
-          <div class="capture-mode-switch" role="group" aria-label="撮影の種類">
-            <button id="photoModeBtn" type="button" class="active" aria-pressed="true">写真</button>
-            <button id="videoModeBtn" type="button" aria-pressed="false">動画</button>
-          </div>
           <div id="recordingStatus" class="recording-status" hidden><i></i><span id="recordingTime">00:00</span></div>
           <div class="camera-bottom-controls">
             <button id="albumThumbBtn" class="thumb-btn" aria-label="アルバム"><span id="albumThumbEmpty">写真</span><img id="albumThumb" alt="最新写真" hidden></button>
             <button id="shutterBtn" class="shutter" aria-label="撮影"><span></span></button>
-            <button id="switchCameraBtn" class="round-btn" aria-label="カメラ切替">↻</button>
+            <button id="switchCameraBtn" class="round-btn" aria-label="カメラ切替"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.8-4M4 5v5h5"></path><path d="M4 13a8 8 0 0 0 14.8 4M20 19v-5h-5"></path></svg></button>
           </div>
         </div>
         <div class="camera-status-row">
@@ -98,18 +103,19 @@
           <input id="albumSearch" type="search" placeholder="場所・機械名・設備番号・ファイル名で検索" aria-label="アルバム検索">
           <select id="albumSourceFilter" aria-label="写真種別">
             <option value="all">すべて</option>
+            <option value="unsaved">未保存のみ</option>
             <option value="camera">撮影</option>
             <option value="import">読み込み</option>
             <option value="edited">編集済み</option>
           </select>
         </div>
         <div id="albumSelectionBar" class="selection-bar" hidden>
-          <span><b id="selectedCount">0</b>枚選択</span>
-          <div><button id="makeReportBtn" class="primary-small">写真台帳</button><button id="deleteSelectedBtn" class="danger-small">削除</button></div>
+          <div class="selection-summary"><span><b id="selectedCount">0</b>枚選択</span><button id="selectAllBtn" class="soft-btn" type="button">すべて選択</button><button id="clearSelectionBtn" class="soft-btn" type="button">選択解除</button></div>
+          <div class="selection-actions"><button id="saveSelectedBtn" class="primary-small" type="button">選択した写真を保存</button><button id="makeReportBtn" class="soft-btn" type="button">写真台帳</button><button id="deleteSelectedBtn" class="danger-small" type="button">削除</button></div>
         </div>
         <div id="albumGrid" class="album-grid"></div>
         <div id="albumEmpty" class="empty-state" hidden>
-          <div class="lens-logo large"><span>WP</span></div>
+          <div class="lens-logo large"><i></i><span>WP</span></div>
           <h2>写真はまだありません</h2>
           <p>カメラで撮影するか、スマホの写真を読み込んでください。</p>
           <button id="emptyImportBtn" class="primary-btn">写真を選ぶ</button>
@@ -130,7 +136,7 @@
         </div>
         <div class="viewer-actions">
           <button id="viewerEditBtn" class="primary-small">高機能編集</button>
-          <button id="viewerShareBtn" class="soft-btn">端末へ保存</button>
+          <button id="viewerShareBtn" class="soft-btn">写真アプリへ保存</button>
           <button id="viewerInfoBtn" class="soft-btn">詳細</button>
           <button id="viewerDeleteBtn" class="viewer-delete-link">削除</button>
         </div>
@@ -166,7 +172,7 @@
       <section id="settingsView" class="view">
         <div class="section-head"><div><h1>設定・安心設計</h1><p>WORK PHOTO for Machines</p></div></div>
         <div class="settings-card policy">
-          <div class="lens-logo"><span>WP</span></div>
+          <div class="lens-logo"><i></i><span>WP</span></div>
           <div><strong>AI FREE PHOTO EDITOR</strong><p>AI解析を一切使用しません。広告追跡や行動分析も行わず、アプリ独自のクラウドへ写真を送信しません。</p></div>
         </div>
         <div class="settings-card">
@@ -181,7 +187,7 @@
         </div>
         <div class="settings-card">
           <h2>現在のブラウザ版について</h2>
-          <p>この動作版はインストール可能なPWAです。MARKET BASEから開いた場合は共通幅・共通ヘッダー位置で表示し、上部の戻る操作からMARKET BASEへ戻れます。撮影・読み込み写真はアプリ内の最近の写真から確認でき、全画面表示、左右移動、編集、共有ができます。スマホ標準の写真アプリへ移す場合は「端末へ保存」または共有機能を使用します。</p>
+          <p>この動作版はインストール可能なPWAです。MARKET BASEから開いた場合は共通幅・共通ヘッダー位置で表示し、上部の戻る操作からMARKET BASEへ戻れます。撮影・読み込み写真はアプリ内の最近の写真から確認でき、全画面表示、左右移動、編集、共有ができます。iPhoneの写真アプリへ移す場合は「写真アプリへ保存」を押し、共有画面で「画像を保存」を選びます。</p>
           <p><b>Version 1.7｜実機UX改修版</b></p><p>撮影面積、編集プレビュー、撮影補助、GPS候補、端末保存の導線を実機利用に合わせて整理しました。</p>
         </div>
         <button id="clearAllBtn" class="danger-btn">アプリ内の写真をすべて削除</button>

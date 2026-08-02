@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'work-photo-';
-const CACHE = `${CACHE_PREFIX}v1.7-20260802-final`;
+const CACHE = `${CACHE_PREFIX}v1.7-20260802-photo-memo`;
 const ASSETS = [
   './',
   './index.html',

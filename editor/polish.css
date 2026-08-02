@@ -35,7 +35,8 @@ button,input,select,textarea{font-weight:600}
 .sheet-backdrop[data-variant="preview"]{background:transparent!important;pointer-events:none}.bottom-sheet[data-variant="preview"]{max-height:min(40dvh,390px);pointer-events:auto}.bottom-sheet[data-variant="preview"] .sheet-description{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bottom-sheet[data-variant="preview"] .sheet-content{gap:7px}.bottom-sheet[data-variant="preview"] .button-row{gap:6px}.bottom-sheet[data-variant="preview"] .choice-button{flex:1;padding:7px 9px}
 .app-dialog::backdrop{background:rgba(7,18,25,.38);backdrop-filter:none}.dialog-panel{border-radius:16px;padding:16px}.dialog-panel header h2{font-size:22px}.form-grid label span{font-size:13px}.form-grid select,.form-grid input{min-height:48px;border-radius:10px;font-size:15px}.save-note,.help-item span,.help-steps span{font-size:12px}.save-to-album{font-size:13px}
-.snap-badge{font-size:12px}.start-card small{font-size:12px!important}.toast{background:rgba(20,47,67,.96);font-size:13px}
+.snap-badge{font-size:13px;transform-origin:center;transition:transform .12s ease,opacity .12s ease}.snap-badge.is-snapping{animation:snap-pulse .28s ease-out}.start-card small{font-size:12px!important}.toast{background:rgba(20,47,67,.96);font-size:13px}
+@keyframes snap-pulse{0%{transform:scale(.78);opacity:.55}55%{transform:scale(1.14);opacity:1}100%{transform:scale(1)}}
 
 @media(max-width:899px){
   body.is-editor{height:100dvh;overflow:hidden;background:#10181e}
@@ -50,14 +51,14 @@ button,input,select,textarea{font-weight:600}
   body.is-editor .canvas-stage{width:100%;max-width:100%;flex:1;min-width:0;min-height:0;height:auto!important;max-height:none;overflow:hidden;border:0;border-radius:0;background-color:#182229;background-image:none}
   body.is-editor #editorCanvas{max-width:none;min-width:0}
   body.is-editor .canvas-footer{width:100%;max-width:100%;flex:0 0 44px;min-width:0;min-height:44px;padding:0 8px;background:#fff}
-  body.is-editor .tool-panel{position:relative;width:100%;max-width:100%;min-width:0;flex:0 0 auto;padding:5px 6px calc(5px + var(--safe-bottom));overflow:hidden;border:0;border-top:1px solid var(--mb-line);border-radius:0;background:#fff}
+  body.is-editor .tool-panel{position:relative;z-index:30;width:100%;max-width:100%;min-width:0;flex:0 0 auto;padding:5px 6px calc(5px + var(--safe-bottom));overflow:hidden;border:0;border-top:1px solid var(--mb-line);border-radius:0;background:#fff}
   body.is-editor .tool-tabs{width:100%;height:44px;margin:0}
   body.is-editor .tool-tab{min-height:44px}
   body.is-editor .tool-grid{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;margin:5px 0 0;padding:0 0 2px;scrollbar-width:none}
   body.is-editor .tool-grid::-webkit-scrollbar{display:none}
   body.is-editor .tool-button{flex:0 0 76px;min-height:64px;scroll-snap-align:start;padding:5px 4px}
   body.is-editor .quick-state{display:none}
-  body.is-editor .quick-state:has(.mini-button:not([hidden])){display:flex;position:absolute;left:8px;right:8px;bottom:calc(100% + 6px);z-index:20;background:rgba(255,255,255,.96);box-shadow:0 7px 20px rgba(7,18,25,.18)}
+  body.is-editor .quick-state:has(.mini-button:not([hidden])){display:flex;position:static;min-height:46px;margin-top:5px;padding:4px 7px;background:#f4f7f8;box-shadow:none}
   .bottom-sheet{width:100%;padding-left:12px;padding-right:12px}.bottom-sheet[data-variant="preview"]{max-height:min(38dvh,350px)}
 }
 @media(max-width:520px){
