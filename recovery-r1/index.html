@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#142f43">
+  <meta name="description" content="WORK PHOTO for Machines - AI FREE PHOTO EDITOR">
+  <link rel="manifest" href="../manifest.webmanifest?v=20260802-v18-color-r1">
+  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/app-icon-192.png">
+  <link rel="stylesheet" href="styles.css?v=20260802-v18-color-r1">
+  <link rel="stylesheet" href="work-series.css?v=20260802-v18-color-r1">
+  <link rel="stylesheet" href="market-base-integration.css?v=20260802-v18-color-r1">
+  <link rel="stylesheet" href="ui-polish.css?v=20260802-v18-color-r1">
+  <title>WORK PHOTO for Machines｜色調整実機修正版 v1.8</title>
+</head>
+<body>
+  <div class="desktop-shell market-base-shell">
+    <div id="app" class="app-shell">
+    <header id="topbar" class="topbar" hidden>
+      <button id="backBtn" class="icon-btn" aria-label="戻る" title="戻る" hidden><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button>
+    </header>
+
+    <main>
+      <section id="cameraView" class="view active">
+        <div class="camera-control-strip">
+          <button id="cameraBackBtn" class="camera-line-btn" type="button" aria-label="戻る" hidden><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button>
+          <div class="capture-mode-switch" role="group" aria-label="撮影の種類">
+            <button id="photoModeBtn" type="button" class="active" aria-pressed="true">写真</button>
+            <button id="videoModeBtn" type="button" aria-pressed="false">動画</button>
+          </div>
+          <button id="cameraSettingsBtn" class="camera-line-btn" type="button" aria-label="撮影設定"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3V9.6h.1A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06L7.06 3.7l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.4 9c.1.4.3.8.6 1 .3.3.7.4 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.7.6Z"></path></svg></button>
+        </div>
+        <div class="camera-stage" id="cameraStage">
+          <video id="cameraVideo" playsinline autoplay muted></video>
+          <div id="cameraPlaceholder" class="camera-placeholder">
+            <div class="lens-logo large"><i></i><span>WP</span></div>
+            <strong>カメラを起動します</strong>
+            <small>カメラが使えない場合は左下から写真を選べます</small>
+          </div>
+          <div class="camera-top-controls" hidden aria-hidden="true">
+            <button id="flashBtn" class="glass-btn" title="常時ライト">⚡ <span>OFF</span></button>
+            <select id="cameraMode" class="glass-select" aria-label="撮影モード">
+              <option value="factory">工場内撮影</option>
+              <option value="standard">標準撮影</option>
+              <option value="plate">銘板・書類</option>
+              <option value="inside">機械内部</option>
+              <option value="line">製造ライン</option>
+            </select>
+            <button id="gpsBtn" class="glass-btn" title="位置情報">⌖ <span>GPS</span></button>
+          </div>
+          <div class="camera-overlay-status" aria-live="polite">
+            <span id="cameraModeBadge">標準撮影</span>
+            <span id="cameraAssistBadge" hidden>撮影補助</span>
+          </div>
+          <div id="cameraGuides" class="camera-guides" aria-hidden="true">
+            <i class="guide-line guide-v guide-v1"></i><i class="guide-line guide-v guide-v2"></i>
+            <i class="guide-line guide-h guide-h1"></i><i class="guide-line guide-h guide-h2"></i>
+            <i class="guide-center-v"></i><i class="guide-center-h"></i>
+            <i class="guide-front-frame"></i>
+            <div id="levelGuide" class="level-guide"><span></span></div>
+          </div>
+          <div id="captureRatioGuide" class="capture-ratio-guide" data-ratio="4:3" aria-hidden="true"><span>4:3</span></div>
+          <div id="focusRing" class="focus-ring" hidden></div>
+          <div id="exposurePanel" class="exposure-panel" hidden>
+            <span aria-hidden="true">☀</span><input id="exposureSlider" aria-label="露出・明るさ補正" type="range" min="-2" max="2" step="0.1" value="0"><output id="exposureValue">0.0</output>
+          </div>
+          <div id="zoomPanel" class="zoom-panel" hidden>
+            <input id="zoomSlider" type="range" min="1" max="1" step="0.1" value="1"><output id="zoomValue">1.0×</output>
+          </div>
+          <div id="recordingStatus" class="recording-status" hidden><i></i><span id="recordingTime">00:00</span></div>
+          <div class="camera-bottom-controls">
+            <button id="albumThumbBtn" class="thumb-btn" aria-label="アルバム"><span id="albumThumbEmpty">写真</span><img id="albumThumb" alt="最新写真" hidden></button>
+            <button id="shutterBtn" class="shutter" aria-label="撮影"><span></span></button>
+            <button id="switchCameraBtn" class="round-btn" aria-label="カメラ切替"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.8-4M4 5v5h5"></path><path d="M4 13a8 8 0 0 0 14.8 4M20 19v-5h-5"></path></svg></button>
+          </div>
+        </div>
+        <div class="camera-status-row">
+          <button id="captureContextBtn" class="context-chip" type="button"><b>撮影先</b><span id="captureContextText">未設定</span></button>
+          <span id="locationText">位置情報：未取得</span>
+          <button id="openImportBtn" class="link-btn">写真を選ぶ</button>
+        </div>
+      </section>
+
+      <section id="albumView" class="view">
+        <div class="section-head">
+          <div><h1>アルバム</h1><p>撮影・読み込み・編集した写真</p></div>
+          <div class="head-actions">
+            <button id="albumCameraBtn" class="soft-btn">撮影</button>
+            <button id="albumImportBtn" class="soft-btn">追加</button>
+            <button id="selectModeBtn" class="soft-btn">選択</button>
+          </div>
+        </div>
+        <div class="album-filter-bar">
+          <input id="albumSearch" type="search" placeholder="場所・機械名・設備番号・ファイル名で検索" aria-label="アルバム検索">
+          <select id="albumSourceFilter" aria-label="写真種別">
+            <option value="all">すべて</option>
+            <option value="unsaved">未保存のみ</option>
+            <option value="camera">撮影</option>
+            <option value="import">読み込み</option>
+            <option value="edited">編集済み</option>
+          </select>
+        </div>
+        <div id="albumSelectionBar" class="selection-bar" hidden>
+          <div class="selection-summary"><span><b id="selectedCount">0</b>枚選択</span><button id="selectAllBtn" class="soft-btn" type="button">すべて選択</button><button id="clearSelectionBtn" class="soft-btn" type="button">選択解除</button></div>
+          <div class="selection-actions"><button id="saveSelectedBtn" class="primary-small" type="button">選択した写真を保存</button><button id="makeReportBtn" class="soft-btn" type="button">写真台帳</button><button id="deleteSelectedBtn" class="danger-small" type="button">削除</button></div>
+        </div>
+        <div id="albumGrid" class="album-grid"></div>
+        <div id="albumEmpty" class="empty-state" hidden>
+          <div class="lens-logo large"><i></i><span>WP</span></div>
+          <h2>写真はまだありません</h2>
+          <p>カメラで撮影するか、スマホの写真を読み込んでください。</p>
+          <button id="emptyImportBtn" class="primary-btn">写真を選ぶ</button>
+        </div>
+      </section>
+
+      <section id="viewerView" class="view viewer-view">
+        <div id="viewerStage" class="viewer-stage">
+          <img id="viewerImage" alt="写真">
+          <button id="viewerPrevBtn" class="viewer-nav prev" aria-label="前の写真">‹</button>
+          <button id="viewerNextBtn" class="viewer-nav next" aria-label="次の写真">›</button>
+          <div id="viewerCounter" class="viewer-counter">1 / 1</div>
+        </div>
+        <div class="viewer-details">
+          <h1 id="viewerName">写真</h1>
+          <p id="viewerMeta"></p>
+          <div id="viewerMetaChips" class="meta-chips"></div>
+        </div>
+        <div class="viewer-actions">
+          <button id="viewerEditBtn" class="primary-small">高機能編集</button>
+          <button id="viewerShareBtn" class="soft-btn">写真アプリへ保存</button>
+          <button id="viewerInfoBtn" class="soft-btn">詳細</button>
+          <button id="viewerDeleteBtn" class="viewer-delete-link">削除</button>
+        </div>
+      </section>
+
+      <section id="reportView" class="view">
+        <div class="section-head">
+          <div><h1>写真台帳</h1><p>A4一枚に写真と空白コメント欄を配置</p></div>
+        </div>
+        <div class="form-card">
+          <label>タイトル<input id="reportTitle" type="text" value="写真台帳"></label>
+          <label>サブタイトル<input id="reportSubtitle" type="text" placeholder="案件名、機械名、撮影場所など（空欄可）"></label>
+          <div class="form-grid"><label>用紙<select id="reportOrientation"><option value="portrait">A4 縦</option><option value="landscape">A4 横</option></select></label><label>1ページ<select id="reportCount"><option value="9">9枚</option><option value="12">12枚</option><option value="16">16枚</option><option value="20">20枚</option></select></label></div>
+          <div class="form-grid"><label>番号の付け方<select id="reportNumberMode"><option value="continuous">全ページ通し</option><option value="page">ページごとに開始</option><option value="manual">写真ごとに手入力</option></select></label><label>番号の表示<select id="reportNumberStyle"><option value="photo">写真1</option><option value="no">No.1</option><option value="plain">1</option><option value="zero">001</option><option value="circled">①</option></select></label></div>
+          <div class="form-grid"><label id="reportStartNumberLabel">開始番号<input id="reportStartNumber" type="number" min="0" value="1"></label><label>番号の位置<select id="reportNumberPosition"><option value="bottom">下部見出し</option><option value="top-left">写真上部・左</option><option value="top-right">写真上部・右</option></select></label></div>
+          <label>ページ下部の自由記入欄<textarea id="reportNote" rows="2" placeholder="Excelで後から入力する場合は空欄のままで構いません"></textarea></label>
+          <label class="switch-row report-switch"><span><b>撮影情報をコメント欄へ入れる</b><small>撮影先・機械名・設備番号をExcelの編集可能セルへ記載</small></span><input id="reportIncludeMeta" type="checkbox"></label>
+          <label>ファイル名<input id="reportFilename" type="text" value="写真台帳"></label>
+          <div class="report-template-card">
+            <label>書式名<input id="reportTemplateName" type="text" maxlength="40" placeholder="書式名を入力"></label>
+            <label>保存書式<select id="reportTemplateSelect"><option value="">新しい書式</option></select></label>
+            <div class="report-template-actions"><button id="saveReportTemplateBtn" class="soft-btn">保存</button><button id="loadReportTemplateBtn" class="soft-btn">読込</button><button id="duplicateReportTemplateBtn" class="soft-btn">複製</button><button id="deleteReportTemplateBtn" class="danger-small">削除</button></div>
+          </div>
+          <div class="report-summary"><b id="reportPhotoCount">0</b>枚 ／ <b id="reportPageCount">0</b>ページ</div>
+        </div>
+        <div class="section-head compact-head"><div><h2>写真順・コメント</h2><p>コメントはExcel上でも後から編集できます</p></div></div>
+        <div id="reportItems" class="report-items"></div>
+        <div class="section-head compact-head"><div><h2>A4プレビュー</h2></div></div>
+        <div id="reportPreview" class="report-preview"></div>
+        <div class="sticky-actions"><button id="exportXlsxBtn" class="primary-btn">Excel（.xlsx）で保存</button></div>
+      </section>
+
+      <section id="settingsView" class="view">
+        <div class="section-head"><div><h1>設定・安心設計</h1><p>撮影・保存・プライバシー</p></div></div>
+        <div class="settings-card policy">
+          <div class="lens-logo"><i></i><span>WP</span></div>
+          <div><strong>AI FREE PHOTO EDITOR</strong><p>AI解析を一切使用しません。広告追跡や行動分析も行わず、アプリ独自のクラウドへ写真を送信しません。</p></div>
+        </div>
+        <div class="settings-card">
+          <label class="switch-row"><span><b>位置情報を写真情報に保持</b><small>ブラウザで取得できた位置をアプリ内情報として保存</small></span><input id="gpsSetting" type="checkbox" checked></label>
+          <label class="switch-row"><span><b>最後の撮影モードを記憶</b><small>次回起動時も同じモードを使用</small></span><input id="modeMemorySetting" type="checkbox" checked></label>
+          <label class="switch-row"><span><b>撮影後もカメラを維持</b><small>連続撮影しやすい動作</small></span><input id="continuousSetting" type="checkbox" checked></label>
+        </div>
+        <div class="settings-card">
+          <h2>撮影先情報</h2>
+          <p>カメラ画面の「撮影先」から、場所・機械名・設備番号を設定できます。入力内容は撮影した写真へ関連付けられ、アルバム検索と写真台帳で利用できます。</p>
+          <button id="editCaptureContextBtn" class="soft-btn">現在の撮影先を編集</button>
+        </div>
+        <div class="settings-card">
+          <h2>現在のブラウザ版について</h2>
+          <p>この動作版はインストール可能なPWAです。MARKET BASEから開いた場合は共通幅・共通ヘッダー位置で表示し、上部の戻る操作からMARKET BASEへ戻れます。撮影・読み込み写真はアプリ内の最近の写真から確認でき、全画面表示、左右移動、編集、共有ができます。iPhoneの写真アプリへ移す場合は「写真アプリへ保存」を押し、共有画面で「画像を保存」を選びます。</p>
+          <p><b>Version 1.7｜実機UX改修版</b></p><p>撮影面積、編集プレビュー、撮影補助、GPS候補、端末保存の導線を実機利用に合わせて整理しました。</p>
+          <button id="refreshAppBtn" class="soft-btn" type="button">キャッシュを消して最新版を開く</button>
+        </div>
+        <button id="clearAllBtn" class="danger-btn">アプリ内の写真をすべて削除</button>
+      </section>
+    </main>
+
+    <input id="photoInput" type="file" accept="image/*" multiple hidden>
+    <input id="nativeCameraInput" type="file" accept="image/*" capture="environment" hidden>
+    <div id="toast" class="toast" role="status"></div>
+    <div id="modal" class="modal-backdrop" hidden><div class="modal-card"><div id="modalContent"></div></div></div>
+    </div>
+  </div>
+
+  <script src="db.js?v=20260802-v18-color-r1"></script>
+  <script src="xlsx.js?v=20260802-v18-color-r1"></script>
+  <script src="app.js?v=20260802-v18-color-r1"></script>
+</body>
+</html>

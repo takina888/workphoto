@@ -1,0 +1,407 @@
+{
+  "completedAt": "2026-08-02T14:54:28.720Z",
+  "assertions": [
+    {
+      "name": "camera view uses full viewport",
+      "passed": true,
+      "actual": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844,
+        "bottom": 844
+      }
+    },
+    {
+      "name": "camera mode strip is outside the photograph",
+      "passed": true,
+      "actual": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 52,
+          "bottom": 52
+        },
+        "stage": {
+          "x": 0,
+          "y": 52,
+          "width": 390,
+          "height": 792,
+          "bottom": 844
+        }
+      }
+    },
+    {
+      "name": "camera photograph remains dominant",
+      "passed": true,
+      "actual": {
+        "x": 0,
+        "y": 52,
+        "width": 390,
+        "height": 792,
+        "bottom": 844
+      }
+    },
+    {
+      "name": "camera persistent bottom navigation removed",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "camera has photo/video switch",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "camera strip controls do not overlap",
+      "passed": true,
+      "actual": [
+        {
+          "id": "photoModeBtn",
+          "left": 125,
+          "right": 195
+        },
+        {
+          "id": "videoModeBtn",
+          "left": 195,
+          "right": 265
+        },
+        {
+          "id": "cameraSettingsBtn",
+          "left": 338,
+          "right": 382
+        }
+      ]
+    },
+    {
+      "name": "camera no horizontal overflow",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "camera action controls use 44px targets",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "camera visible text is at least 12px",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "camera settings restores grid",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "camera settings restores level and front guide",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "camera settings exposes capture size",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "camera settings exposes 4:3 / 16:9 / 1:1 ratios",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "camera settings exposes Photos save size",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "camera settings exposes flicker reduction",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "thirds grid applied",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "center guide applied",
+      "passed": true,
+      "actual": "camera-guides show-center"
+    },
+    {
+      "name": "1:1 capture guide applied",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "tap reveals exposure control",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "GPS address candidate shown",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "capture destination badge updated",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "photo capture auto-adds to work folder without confirmation modal",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "lower-left thumbnail updates after capture",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "video mode changes shutter",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "basic video recording starts",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "video review offers device save",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "album reached without global ledger",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "album provides unsaved-only filter",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "batch selection selects all visible photos",
+      "passed": true,
+      "actual": {
+        "selected": "2",
+        "albumCount": 2
+      }
+    },
+    {
+      "name": "batch save button shows selected count",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "batch save prepares multiple files before share tap",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "saved photos receive a saved badge",
+      "passed": true,
+      "actual": 2
+    },
+    {
+      "name": "viewer exposes contextual device save",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "viewer does not expose ledger action",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "device save shows size choices",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "device save prepares the file before the user share tap",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "editor photograph area is dominant",
+      "passed": true,
+      "actual": {
+        "x": 0,
+        "y": 54,
+        "width": 390,
+        "height": 587.96875,
+        "bottom": 641.96875
+      }
+    },
+    {
+      "name": "editor no horizontal overflow",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "horizontal preview has no blur",
+      "passed": true,
+      "actual": {
+        "background": "rgba(0, 0, 0, 0)",
+        "blur": "none"
+      }
+    },
+    {
+      "name": "horizontal sheet stays compact",
+      "passed": true,
+      "actual": {
+        "x": 0,
+        "y": 523.28125,
+        "width": 390,
+        "height": 320.71875,
+        "bottom": 844
+      }
+    },
+    {
+      "name": "photo remains visible during horizontal adjustment",
+      "passed": true,
+      "actual": {
+        "x": 0,
+        "y": 49,
+        "width": 390,
+        "height": 587.96875,
+        "bottom": 636.96875
+      }
+    },
+    {
+      "name": "color adjustment exposes all seven controls",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "color adjustment restores shadows, highlights and sharpness",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "color sheet stays compact",
+      "passed": true,
+      "actual": {
+        "x": 0,
+        "y": 523.28125,
+        "width": 390,
+        "height": 320.71875,
+        "bottom": 844
+      }
+    },
+    {
+      "name": "filter strength control is present",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "save dialog shows estimated capacity range",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "shape tool includes circle rectangle triangle arrow and line",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "shape tool exposes snapping toggle and six colors",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "triangle placement keeps object selected for point editing",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dimension tool exposes snapping, six colors and custom color",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dimension arrow accepts mm value",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "reset-all creates an undo checkpoint",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "visible editor action controls use 44px targets",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "visible editor text is at least 12px",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "save format preference persists",
+      "passed": true,
+      "actual": "image/png"
+    },
+    {
+      "name": "save size preference persists",
+      "passed": true,
+      "actual": "1920"
+    },
+    {
+      "name": "root app reloads offline",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "editor and demo image load offline",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "compact iPhone height keeps shutter and mode switch visible",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "compact iPhone height keeps photo and editor controls visible",
+      "passed": true,
+      "actual": {
+        "x": 0,
+        "y": 54,
+        "width": 375,
+        "height": 454.96875,
+        "bottom": 508.96875
+      }
+    },
+    {
+      "name": "desktop editor has no horizontal overflow",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "desktop editor keeps a large photograph stage",
+      "passed": true,
+      "actual": {
+        "x": 25,
+        "y": 161.796875,
+        "width": 834,
+        "height": 530,
+        "bottom": 691.796875
+      }
+    }
+  ],
+  "diagnostics": {
+    "console": [],
+    "pageErrors": [],
+    "requestFailures": []
+  },
+  "passed": 62,
+  "failed": 0
+}

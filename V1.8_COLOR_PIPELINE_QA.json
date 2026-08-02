@@ -1,0 +1,247 @@
+{
+  "build": "v1.8-20260802-color-pipeline-r1",
+  "completedAt": "2026-08-02T14:51:07.601Z",
+  "passed": 25,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "色調整中はiPhone用軽量プレビュー",
+      "passed": true,
+      "actual": [
+        720,
+        480
+      ]
+    },
+    {
+      "name": "調整:brightness",
+      "passed": true,
+      "actual": {
+        "difference": 43.018682484567904,
+        "latencyMs": 13
+      }
+    },
+    {
+      "name": "操作応答:brightness",
+      "passed": true,
+      "actual": 13
+    },
+    {
+      "name": "調整:contrast",
+      "passed": true,
+      "actual": {
+        "difference": 27.02399691358025,
+        "latencyMs": 8.299999997019768
+      }
+    },
+    {
+      "name": "操作応答:contrast",
+      "passed": true,
+      "actual": 8.299999997019768
+    },
+    {
+      "name": "調整:saturation",
+      "passed": true,
+      "actual": {
+        "difference": 5.038425925925926,
+        "latencyMs": 8.799999997019768
+      }
+    },
+    {
+      "name": "操作応答:saturation",
+      "passed": true,
+      "actual": 8.799999997019768
+    },
+    {
+      "name": "調整:warmth",
+      "passed": true,
+      "actual": {
+        "difference": 30.405353009259258,
+        "latencyMs": 8.699999995529652
+      }
+    },
+    {
+      "name": "操作応答:warmth",
+      "passed": true,
+      "actual": 8.699999995529652
+    },
+    {
+      "name": "調整:shadows",
+      "passed": true,
+      "actual": {
+        "difference": 4.531163194444445,
+        "latencyMs": 9.100000001490116
+      }
+    },
+    {
+      "name": "操作応答:shadows",
+      "passed": true,
+      "actual": 9.100000001490116
+    },
+    {
+      "name": "調整:highlights",
+      "passed": true,
+      "actual": {
+        "difference": 24.43677662037037,
+        "latencyMs": 12
+      }
+    },
+    {
+      "name": "操作応答:highlights",
+      "passed": true,
+      "actual": 12
+    },
+    {
+      "name": "調整:sharpness",
+      "passed": true,
+      "actual": {
+        "difference": 1.0217881944444445,
+        "latencyMs": 25.30000000447035
+      }
+    },
+    {
+      "name": "操作応答:sharpness",
+      "passed": true,
+      "actual": 25.30000000447035
+    },
+    {
+      "name": "決定後プレビューにも色調整が残る",
+      "passed": true,
+      "actual": {
+        "difference": 37.797654320987654,
+        "size": [
+          1080,
+          720
+        ]
+      }
+    },
+    {
+      "name": "フィルター:bright",
+      "passed": true,
+      "actual": 4.096228780864197
+    },
+    {
+      "name": "フィルター:clear",
+      "passed": true,
+      "actual": 3.39759837962963
+    },
+    {
+      "name": "フィルター:warm",
+      "passed": true,
+      "actual": 5.312490354938272
+    },
+    {
+      "name": "フィルター:cool",
+      "passed": true,
+      "actual": 5.957098765432098
+    },
+    {
+      "name": "フィルター:mono",
+      "passed": true,
+      "actual": 3.5028935185185186
+    },
+    {
+      "name": "フィルター:document",
+      "passed": true,
+      "actual": 4.891059027777778
+    },
+    {
+      "name": "フィルター:vivid",
+      "passed": true,
+      "actual": 2.5174864969135804
+    },
+    {
+      "name": "保存PNGにも色調整とフィルターが反映",
+      "passed": true,
+      "actual": {
+        "width": 1280,
+        "height": 853,
+        "meanAbsoluteDifference": 39.288052139316605
+      }
+    },
+    {
+      "name": "実行時エラーなし",
+      "passed": true,
+      "actual": []
+    }
+  ],
+  "controlResults": [
+    {
+      "id": "brightness",
+      "value": 145,
+      "latencyMs": 13,
+      "difference": 43.018682484567904
+    },
+    {
+      "id": "contrast",
+      "value": 150,
+      "latencyMs": 8.299999997019768,
+      "difference": 27.02399691358025
+    },
+    {
+      "id": "saturation",
+      "value": 10,
+      "latencyMs": 8.799999997019768,
+      "difference": 5.038425925925926
+    },
+    {
+      "id": "warmth",
+      "value": 45,
+      "latencyMs": 8.699999995529652,
+      "difference": 30.405353009259258
+    },
+    {
+      "id": "shadows",
+      "value": 65,
+      "latencyMs": 9.100000001490116,
+      "difference": 4.531163194444445
+    },
+    {
+      "id": "highlights",
+      "value": -65,
+      "latencyMs": 12,
+      "difference": 24.43677662037037
+    },
+    {
+      "id": "sharpness",
+      "value": 80,
+      "latencyMs": 25.30000000447035,
+      "difference": 1.0217881944444445
+    }
+  ],
+  "filters": [
+    {
+      "preset": "bright",
+      "difference": 4.096228780864197
+    },
+    {
+      "preset": "clear",
+      "difference": 3.39759837962963
+    },
+    {
+      "preset": "warm",
+      "difference": 5.312490354938272
+    },
+    {
+      "preset": "cool",
+      "difference": 5.957098765432098
+    },
+    {
+      "preset": "mono",
+      "difference": 3.5028935185185186
+    },
+    {
+      "preset": "document",
+      "difference": 4.891059027777778
+    },
+    {
+      "preset": "vivid",
+      "difference": 2.5174864969135804
+    }
+  ],
+  "exportDifference": {
+    "width": 1280,
+    "height": 853,
+    "meanAbsoluteDifference": 39.288052139316605
+  },
+  "diagnostics": []
+}

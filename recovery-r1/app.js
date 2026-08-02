@@ -94,7 +94,7 @@
   }
   async function registerAppWorker(){
     if(!('serviceWorker'in navigator)||location.protocol==='file:')return;
-    try{const registration=await navigator.serviceWorker.register(`./service-worker.js?v=${encodeURIComponent(APP_BUILD)}`,{scope:'./',updateViaCache:'none'});if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'})}catch(error){console.warn('Offline setup skipped',error)}
+    try{const registration=await navigator.serviceWorker.register(`../service-worker.js?v=${encodeURIComponent(APP_BUILD)}`,{scope:'../',updateViaCache:'none'});if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'})}catch(error){console.warn('Offline setup skipped',error)}
   }
   function preferredFlickerFrameRate(){const mode=state.settings.camera?.flicker;return mode==='50'?25:mode==='60'?30:null}
   function captureSizeLongEdge(){return ({high:3840,standard:1920,compact:1280})[state.settings.camera?.captureSize]||3840}

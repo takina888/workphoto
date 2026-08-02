@@ -1,15 +1,16 @@
-# WORK PHOTO for Machines v1.7 実機UX改修版
+# WORK PHOTO for Machines v1.8 色調整実機修正版
 
 更新日：2026-08-02
 
 ## この版の位置づけ
 
-v1.7は、v1.6のiPhone確認時に挙がった表示・配置・撮影・保存・GPS・編集操作の指摘を反映したWeb/PWA版です。
-採用したv1.7範囲の実装とChromium自動実ブラウザQAは完了しました。iPhone Safari／ホーム画面PWAとAndroid Chrome／PWAの実機受入は未完了です。
+v1.8は、v1.7で明るさ・彩度・フィルター等がiPhone実機上で反映されない問題を修正したWeb/PWA版です。色調整中は長辺720pxの軽量プレビュー、通常表示はタッチ端末で長辺1080px、保存時は指定解像度の分割画素処理を使います。全画素を一括再計算して無反応になる経路と、処理失敗を黙って無視する経路を廃止しました。
+
+公開経路 `recovery-r1/editor` のService Worker参照先、初回以外も毎回キャッシュ解除していた起動処理、カメラ起動直後に露出パネルが再び消える競合も修正しました。Chromium自動実ブラウザQAは完了しました。iPhone Safari／ホーム画面PWAとAndroid Chrome／PWAの最終実機受入は未完了です。
 
 これは過去の企画書・仕様書に含まれる全長期機能の100%実装宣言ではありません。採用仕様と保留仕様の境界は `SPEC_CONFLICT_RESOLUTION_v1.7.md`、機能別状態は `IMPLEMENTATION_MATRIX.md` を正本とします。
 
-## v1.7で採用した優先仕様
+## v1.8で維持する採用仕様
 
 - 起動直後はカメラ。常設下部ナビを置かず、写真プレビューを最大化する
 - 濃紺・スチールブルー・白／グレーを基本とし、緑は成功状態などに限定する
@@ -42,14 +43,16 @@ v1.7は、v1.6のiPhone確認時に挙がった表示・配置・撮影・保存
 - Undo／Redo、原画比較、全編集初期化とUndo復帰
 - JPEG／PNG／WEBP出力、保存形式・画質・サイズの前回値保持、保存容量概算
 - 単一ルートService Workerによる主要画面のオフライン再読込
+- 旧Service Worker／旧WORK PHOTOキャッシュを自動解除し、旧キャッシュに存在しない `recovery-r1/` から一式を起動
 - 主要操作44px以上、表示文字12px以上の自動確認
 
 ## アプリ構成
 
-- `index.html`：カメラ、アルバム、ビューア、写真台帳、設定
-- `app.js`：撮影、動画、GPS候補、端末保存、アルバム、台帳の制御
-- `editor/index.html`：写真編集画面
-- `editor/app.js`：Canvasによる端末内編集・書き出し
+- `index.html`：写真データを残したまま旧画面キャッシュを解除する起動ページ
+- `recovery-r1/index.html`：カメラ、アルバム、ビューア、写真台帳、設定
+- `recovery-r1/app.js`：撮影、動画、GPS候補、端末保存、アルバム、台帳の制御
+- `recovery-r1/editor/index.html`：写真編集画面
+- `recovery-r1/editor/app.js`：iPhone互換の画素処理による端末内編集・書き出し
 - `db.js`：写真と設定の端末内IndexedDB保存
 - `xlsx.js`：Excel写真台帳生成
 - `service-worker.js`：PWAキャッシュの単一ルート管理
@@ -75,8 +78,9 @@ python start_server.py
 
 | 項目 | 状態 |
 |---|---|
-| v1.7採用Web/PWA範囲 | 実装完了 |
-| Chromium自動実ブラウザQA | 62／62合格、失敗0 |
+| v1.8採用Web/PWA範囲 | 実装完了 |
+| 色調整・フィルター・保存画素QA | 25／25合格、失敗0 |
+| 全体回帰QA | 62／62合格、失敗0 |
 | 実行時診断 | console error 0、page error 0、request failure 0 |
 | 画面寸法 | 390×844、375×667、1280×800で確認済み |
 | オフライン再読込 | ルート画面・編集画面とも合格 |
@@ -84,4 +88,4 @@ python start_server.py
 | Android実機受入 | 未実施 |
 | リリース判定 | Web自動QA合格、実機受入・最終承認待ち |
 
-自動QA証跡は `qa_runtime_output/v17/report.json` と同フォルダのPNG、実機受入項目は `DEVICE_ACCEPTANCE_CHECKLIST.md` を参照してください。
+色調整QAは `V1.8_COLOR_PIPELINE_QA.json`、実機受入項目は `DEVICE_ACCEPTANCE_CHECKLIST.md` を参照してください。

@@ -753,5 +753,5 @@ async function bootEditor(){
     fetch('./demo/sample-photo.png').then(r=>r.blob()).then(b=>loadFile(new File([b],'sample-photo.png',{type:'image/png'}))).catch(()=>{});
   }
 }
-function registerServiceWorker(){if(!('serviceWorker'in navigator)||location.protocol==='file:')return;navigator.serviceWorker.register('../service-worker.js?v='+encodeURIComponent(APP_BUILD),{scope:'../',updateViaCache:'none'}).catch(error=>console.warn('Offline setup skipped',error))}
+function registerServiceWorker(){if(!('serviceWorker'in navigator)||location.protocol==='file:')return;navigator.serviceWorker.register('../../service-worker.js?v='+encodeURIComponent(APP_BUILD),{scope:'../../',updateViaCache:'none'}).catch(error=>console.warn('Offline setup skipped',error))}
 bootEditor();
