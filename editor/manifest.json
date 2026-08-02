@@ -1,0 +1,25 @@
+{
+  "name": "WORK PHOTO for Machines - High Function Editor",
+  "short_name": "WORK PHOTO Edit",
+  "description": "WORK PHOTO v1.7 実機UX改修版の写真編集。AIを使用しない端末内写真編集。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F7FB",
+  "theme_color": "#142f43",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

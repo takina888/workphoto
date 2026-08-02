@@ -1,0 +1,16 @@
+
+:root{--wp-accent:#0b8c89;--wp-accent-dark:#08716f;--wp-navy:#16324a;--mb-navy:#16324a;--mb-blue:#0b8c89;--mb-bright:#0b8c89;--mb-sky:#e8f6f5;--mb-soft:#f3f7f7;--mb-bg:#f3f5f7;--mb-line:#d8e4e3;--mb-divider:#e3eceb;--mb-good:#2a8b57}
+.mb-ui-header{background:#fff;border-bottom:1px solid #dfe7ee;box-shadow:0 2px 12px rgba(16,36,63,.07)}
+.mb-ui-header__inner,.app-shell{width:min(100% - 32px,1440px);max-width:1440px;margin-inline:auto}
+.mb-ui-brand{min-height:44px;display:flex;align-items:center;color:var(--wp-navy);font-weight:900;letter-spacing:.04em}
+.mb-ui-brand::before{content:'WP';display:inline-grid;place-items:center;width:32px;height:32px;margin-right:10px;border:3px solid var(--wp-accent);border-radius:50%;color:var(--wp-accent);font-size:12px}
+.mb-ui-button{white-space:nowrap}
+.save-action,.primary-wide,.mini-button--primary,.sheet-primary{border-color:var(--wp-accent)!important;background:var(--wp-accent)!important}
+.status-dot{background:var(--wp-accent)!important}
+.tool-tab.is-active,.tool-button.is-active,.preset-button.is-selected{color:var(--wp-accent)!important}.tool-button.is-active,.preset-button.is-selected{border-color:var(--wp-accent)!important;background:#e8f6f5!important}.choice-button.is-selected{border-color:var(--wp-accent)!important;background:var(--wp-accent)!important}.inline-input:focus,:focus-visible{outline-color:rgba(11,140,137,.2)!important}.snap-badge,.toast{background:rgba(22,50,74,.96)}
+.save-to-album{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid #d6e1e8;border-radius:12px;background:#f7fbfb;font-weight:700}
+.save-to-album input{margin-top:3px}
+.icon-action{min-width:44px;min-height:44px;flex:0 0 auto}
+.zoom-controls{min-width:0}
+.zoom-controls button{min-width:44px;flex:0 0 44px}
+@media(max-width:720px){.mb-ui-header__inner,.app-shell{width:100%;max-width:none}.mb-ui-header__inner{padding-inline:12px}.workspace-grid{padding-inline:0}}

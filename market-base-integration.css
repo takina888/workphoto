@@ -1,0 +1,171 @@
+/* MARKET BASE integration layer for WORK PHOTO v0.4
+   - PC: same-width common shell; no phone mockup or side explanation.
+   - Mobile: WORK SERIES full-screen UI.
+   - Query options:
+       ?from=market-base&return=<encoded URL>
+       ?embedded=1  (remove outer padding/radius for parent shell embedding)
+*/
+:root{
+  --market-shell-max:1440px;
+  --market-shell-gutter:clamp(14px,2vw,28px);
+  --market-shell-radius:22px;
+}
+.desktop-shell.market-base-shell{
+  width:100%;
+  min-height:100dvh;
+  display:flex;
+  align-items:stretch;
+  justify-content:center;
+  padding:var(--market-shell-gutter);
+  background:#e8edf0;
+}
+.side-note,.series-statusbar{display:none!important}
+.app-shell{
+  position:relative;
+  width:100%;
+  max-width:var(--market-shell-max);
+  height:auto;
+  min-height:680px;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:var(--soft);
+  border:0;
+  border-radius:var(--market-shell-radius);
+  box-shadow:0 18px 55px rgba(20,42,60,.14);
+}
+.topbar{
+  width:100%;
+  height:74px;
+  flex:0 0 74px;
+  position:relative;
+  top:auto;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) 48px;
+  align-items:center;
+  padding:0 clamp(14px,2vw,26px);
+}
+.topbar #backBtn{grid-column:1}
+.topbar .brand-wrap{grid-column:2;justify-self:start;min-width:0}
+.topbar #settingsBtn{grid-column:3}
+main{width:100%;flex:1;min-height:0;overflow:hidden}
+.view{height:100%;min-height:0;overflow-y:auto;padding-bottom:calc(78px + var(--safe-bottom))}
+.bottom-nav{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  width:min(var(--market-shell-max),calc(100% - (var(--market-shell-gutter) * 2)));
+  height:calc(70px + var(--safe-bottom));
+  padding:5px clamp(12px,2vw,24px) var(--safe-bottom);
+}
+.sticky-actions{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(var(--market-shell-max),calc(100% - (var(--market-shell-gutter) * 2)));
+  bottom:calc(70px + var(--safe-bottom));
+  padding-left:clamp(16px,2vw,28px);
+  padding-right:clamp(16px,2vw,28px);
+}
+.toast{bottom:calc(86px + var(--safe-bottom))}
+.modal-card{width:min(760px,100%)}
+
+/* Desktop work area uses the common shell width, not a 390px phone frame. */
+@media (min-width:961px){
+  .brand-name{font-size:18px}.brand-name small{display:inline;font-size:12px;margin-left:5px}
+  .brand-sub{font-size:9px}
+  .camera-stage{min-height:calc(100% - 42px)}
+  .camera-stage video{object-fit:contain}
+  .camera-top-controls{left:clamp(18px,2vw,30px);right:clamp(18px,2vw,30px);top:18px}
+  .camera-bottom-controls{left:clamp(24px,3vw,48px);right:clamp(24px,3vw,48px);bottom:26px}
+  .camera-status-row{padding-left:clamp(20px,2vw,30px);padding-right:clamp(20px,2vw,30px)}
+  .section-head{padding:24px clamp(22px,2.4vw,36px) 16px}
+  .selection-bar{margin-left:clamp(22px,2.4vw,36px);margin-right:clamp(22px,2.4vw,36px)}
+  .album-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:0 clamp(22px,2.4vw,36px) 22px}
+  .form-card,.settings-card{margin-left:clamp(22px,2.4vw,36px);margin-right:clamp(22px,2.4vw,36px)}
+  .report-items{padding-left:clamp(22px,2.4vw,36px);padding-right:clamp(22px,2.4vw,36px)}
+  .report-preview{padding-left:clamp(22px,2.4vw,36px);padding-right:clamp(22px,2.4vw,36px)}
+  .editor-canvas-wrap{height:60dvh;min-height:420px}
+  .viewer-stage{height:64dvh;min-height:440px}
+  .viewer-details,.viewer-actions{padding-left:clamp(22px,2.4vw,36px);padding-right:clamp(22px,2.4vw,36px)}
+}
+
+/* MARKET BASE embedded mode: parent page owns outer background and radius. */
+html[data-embedded="true"] .desktop-shell.market-base-shell{padding:0;background:transparent}
+html[data-embedded="true"] .app-shell{max-width:none;height:100dvh;min-height:100dvh;border-radius:0;box-shadow:none}
+html[data-embedded="true"] .bottom-nav,html[data-embedded="true"] .sticky-actions{width:100%}
+
+@media (max-width:960px){
+  :root{--market-shell-gutter:0px;--market-shell-radius:0px}
+  .desktop-shell.market-base-shell{display:block;min-height:100dvh;padding:0;background:var(--soft)}
+  .app-shell{width:100%;max-width:none;height:100dvh;min-height:100dvh;border-radius:0;box-shadow:none}
+  .topbar{height:70px;flex-basis:70px;padding-top:env(safe-area-inset-top);grid-template-columns:44px minmax(0,1fr) 44px}
+  .view{padding-bottom:calc(82px + var(--safe-bottom))}
+  .bottom-nav{height:calc(74px + var(--safe-bottom))}
+  .sticky-actions{bottom:calc(74px + var(--safe-bottom))}
+}
+
+/* Field controls remain comfortably tappable across phone and desktop shells. */
+.icon-btn,.glass-btn,.glass-select,.link-btn,.soft-btn,.primary-small,.danger-small,
+.viewer-actions button,.report-item-actions button,.report-template-actions button,
+.form-card input,.form-card select,.form-card textarea,.context-chip,.recent-contexts button{
+  min-height:44px;
+}
+.icon-btn{width:44px}
+.link-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px}
+.viewer-actions button{padding-top:9px;padding-bottom:9px}
+
+/* v0.4 field metadata, album search, and editable information */
+.camera-status-row{
+  display:grid;
+  grid-template-columns:minmax(180px,1fr) auto auto;
+  align-items:center;
+  gap:10px;
+}
+.context-chip{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #c7e7e5;
+  background:#edf8f7;
+  color:var(--navy);
+  border-radius:13px;
+  padding:8px 11px;
+  text-align:left;
+}
+.context-chip b{font-size:11px;color:var(--teal);white-space:nowrap}
+.context-chip span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:800}
+.album-filter-bar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(120px,180px);
+  gap:10px;
+  padding:0 clamp(22px,2.4vw,36px) 14px;
+}
+.album-filter-bar input,.album-filter-bar select{
+  width:100%;min-height:44px;border:1px solid #cfd8dd;border-radius:13px;background:#fff;color:var(--ink);padding:9px 12px;
+}
+.album-filter-bar input:focus,.album-filter-bar select:focus{outline:0;border-color:var(--teal);box-shadow:0 0 0 3px rgba(11,140,137,.1)}
+.meta-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.meta-chip{display:inline-flex;align-items:center;max-width:100%;padding:5px 9px;border-radius:999px;background:var(--teal-pale);color:var(--navy);font-size:11px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.report-switch{margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:13px;background:#f9fbfb}
+.field-info-form{display:grid;gap:12px}
+.field-info-form label{display:grid;gap:6px;font-size:12px;font-weight:850;color:var(--navy)}
+.field-info-form input,.field-info-form textarea{width:100%;min-height:44px;border:1px solid #cfd8dd;border-radius:12px;padding:9px 11px;color:var(--ink);background:#fff}
+.field-info-form textarea{min-height:82px;resize:vertical}
+.recent-contexts{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 2px}
+.recent-contexts button{border:1px solid #c7e7e5;background:#edf8f7;color:var(--navy);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800}
+.modal-actions.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:960px){
+  .camera-status-row{grid-template-columns:minmax(0,1fr) auto;padding:7px 10px}
+  .camera-status-row #locationText{grid-column:1 / -1;order:3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .album-filter-bar{grid-template-columns:minmax(0,1fr) 110px;padding:0 16px 12px}
+}
+@media(max-width:480px){
+  .context-chip b{display:none}
+  .context-chip{padding:8px 9px}
+  .album-filter-bar{grid-template-columns:1fr}
+}
