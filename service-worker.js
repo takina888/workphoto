@@ -1,11 +1,12 @@
 const CACHE_PREFIX = 'work-photo-';
-const CACHE = `${CACHE_PREFIX}v1.6-web-finish`;
+const CACHE = `${CACHE_PREFIX}v1.7-20260802-final`;
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './work-series.css',
   './market-base-integration.css',
+  './ui-polish.css',
   './db.js',
   './xlsx.js',
   './app.js',
@@ -16,6 +17,7 @@ const ASSETS = [
   './editor/index.html',
   './editor/style.css',
   './editor/integration.css',
+  './editor/polish.css',
   './editor/db.js',
   './editor/app.js',
   './editor/manifest.json',

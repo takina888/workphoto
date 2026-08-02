@@ -1,12 +1,12 @@
 {
   "name": "WORK PHOTO for Machines",
   "short_name": "WORK PHOTO",
-  "description": "WORK PHOTO for Machines - AI FREE PHOTO EDITOR / camera, device-local album, photo editing and Excel ledger",
+  "description": "WORK PHOTO for Machines - AIを使わない撮影・写真編集。端末内アルバムは補助、写真台帳は選択時のみ。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f3f5f7",
-  "theme_color": "#0b8c89",
+  "theme_color": "#142f43",
   "orientation": "any",
   "icons": [
     {

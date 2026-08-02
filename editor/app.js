@@ -4,7 +4,7 @@ const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 
 const els = {
-  start: $('#startScreen'), editor: $('#editorScreen'), chooseBtn: $('#choosePhotoButton'), takeBtn: $('#takePhotoButton'),
+  start: $('#startScreen'), editor: $('#editorScreen'), chooseBtn: $('#choosePhotoButton'), takeBtn: $('#takePhotoButton'), editorBack:$('#editorBackButton'),
   chooseInput: $('#choosePhotoInput'), takeInput: $('#takePhotoInput'), brandHome: $('#brandHome'), headerBack: $('#headerBack'),
   helpButton: $('#helpButton'), helpDialog: $('#helpDialog'), helpGrid: $('#helpGrid'), imageInfo: $('#imageInfo'),
   canvas: $('#editorCanvas'), stage: $('#canvasStage'), toolGrid: $('#toolGrid'), currentTool: $('#currentToolLabel'),
@@ -18,6 +18,7 @@ const els = {
   saveEstimate: $('#saveEstimate'), confirmSave: $('#confirmSaveButton'), saveToAppAlbum: $('#saveToAppAlbum'), returnAlbum: $('#returnAlbumButton'), toast: $('#toast')
 };
 const ctx = els.canvas.getContext('2d', {willReadFrequently:true});
+ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
 const uid=(prefix='overlay')=>`${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
 
 const ICONS = {
@@ -44,17 +45,18 @@ const ICONS = {
   angle:'<svg viewBox="0 0 32 32"><path d="M6 25 16 8l10 17"></path><path d="M12 25a8 8 0 0 1 8-7"></path></svg>',
   textbox:'<svg viewBox="0 0 32 32"><rect x="4" y="6" width="24" height="20" rx="3"></rect><path d="M9 12h14M16 12v9M12 21h8"></path></svg>',
   bgselect:'<svg viewBox="0 0 32 32"><path d="m7 21 11-15 8 6-11 15H8l-3-3Z"></path><path d="M23 20c3 3 4 5 1 7s-5 0-5-2 2-4 4-5Z"></path></svg>'
+  ,reset:'<svg viewBox="0 0 32 32"><path d="M7 10V4M7 10h6"></path><path d="M8 9a11 11 0 1 1-2 12"></path></svg>'
 };
 
 const toolDefinitions = {
   adjust:[
     ['horizontal','水平','傾きを補正'],['crop','切り抜き','比率を選択'],['rotate','回転','90°回転'],
     ['color','色調整','彩度・明るさ'],['filter','フィルター','ワンタッチ補正'],['perspective','台形補正','四隅を調整'],
-    ['size','画像サイズ','pxを変更'],['upscale','高解像度','AIなしで拡大']
+    ['size','画像サイズ','pxを変更'],['upscale','高解像度','AIなしで拡大'],['reset','全初期化','編集をすべて戻す']
   ],
   write:[
     ['date','日付','ワンタッチ'],['shape','図形','○ □ →'],['text','文字','自由入力'],['textbox','文字枠','四角の中に文字'],
-    ['label','ラベル','グリグリ選択'],['dimension','寸法','磁石のように吸着'],['angle','角度','3点で記入'],['number','番号','①②③'],
+    ['label','ラベル','グリグリ選択'],['dimension','寸法','矢印→mm入力'],['angle','角度','3点で記入'],['number','番号','①②③'],
     ['draw','手書き','ペン・マーカー'],['magnify','部分拡大','細部を強調']
   ],
   repair:[
@@ -65,20 +67,20 @@ const toolDefinitions = {
 const helpData = [
   ['水平','グリッドと通常の輪郭計算で写真の傾きを直します。'],['台形補正','青い4点を四隅に合わせ、斜めの銘板や書類を正面の形にします。'],
   ['日付','今日の日付をワンタッチで写真へ入れます。'],['図形','円・四角・矢印を写真上へ配置します。'],
-  ['ラベル','旧品・交換品・故障部品などを回して選びます。'],['寸法','2点を選び、数値を入力します。端点は強い輪郭へ吸着します。'],
+  ['ラベル','旧品・交換品・故障部品などを回して選びます。'],['寸法','矢印を置いて両端を調整し、矢印をタップして長さをmmで入力します。'],
   ['手動切り抜き','背景を指でなぞって透明にします。透明を残す場合はPNGで保存します。'],['2枚比較','現在の写真ともう1枚を、左右または上下にまとめます。'],
-  ['色調整','明るさ・コントラスト・彩度・色温度を調整します。'],['隠す','ぼかし・モザイク・塗りつぶしで情報を隠します。'],
+  ['色調整','明るさ・コントラスト・彩度・色温度に加え、影・ハイライト・シャープを通常の画像処理で調整します。'],['全初期化','すべての編集を元写真の状態へ戻します。実行直後は「戻す」で復元できます。'],['隠す','ぼかし・モザイク・塗りつぶしで情報を隠します。'],
   ['角度','頂点と2本の基準線を指定し、写真上の見かけの角度を表示します。'],['文字枠','四角の中へ文字を入れ、背景色と透明度を設定します。'],['長押し背景抜き','同系色がつながる範囲を通常の画像処理で透明にします。'],['保存','JPEG・PNG・WEBPから選び、端末の保存画面へ進みます。']
 ];
 
 const defaultState = () => ({
   image:null, imageDataUrl:'', originalImage:null, originalDataUrl:'', originalWidth:0, originalHeight:0, workingWidth:0, workingHeight:0,
-  angle:0, rotation:0, cropRatio:'original', cropZoom:1, cropX:0, cropY:0, freeCropAspect:1, adjustments:{brightness:100,contrast:100,saturation:100,warmth:0},
-  filterPreset:'standard', overlays:[], activeTool:null, drawMode:null, drawStart:null, freePath:null,
+  angle:0, rotation:0, cropRatio:'original', cropZoom:1, cropX:0, cropY:0, freeCropAspect:1, adjustments:{brightness:100,contrast:100,saturation:100,warmth:0,shadows:0,highlights:0,sharpness:0},
+  filterPreset:'standard', filterStrength:100, overlays:[], activeTool:null, drawMode:null, drawStart:null, freePath:null,
   dimensionMode:'free', pendingDimension:null, numberNext:1, zoom:100, outputMode:'original', outputLongEdge:1920,
   compareOriginal:false, history:[], future:[], edgeMap:null, edgeMapDirty:true, selectedLabel:'交換品', perspectivePoints:null, perspectiveDragging:-1, eraseBrush:.035,
   drawOpacity:100,drawLineStyle:'solid',textBoxText:'',textBoxBackground:'#0B63CE',textBoxTextColor:'#FFFFFF',pendingAngle:null,bgTimer:null,bgPoint:null,bgThreshold:38,
-  selectedOverlayId:null,selectionDrag:null,cropPointers:new Map(),cropGesture:null
+  selectedOverlayId:null,selectionDrag:null,cropPointers:new Map(),cropGesture:null,previewGuide:null
 });
 let state = defaultState();
 const EDITOR_PARAMS=new URLSearchParams(location.search);
@@ -91,16 +93,21 @@ let sourcePhotoRecord=null;
 let renderQueued = false;
 let pendingSnapshot = null;
 let toastTimer = null;
+let savedImageDataUrl = '';
+let savedEditSignature = '';
+let lastLayoutWidth = window.innerWidth;
+const SAVE_PREFS_KEY='workphoto.editor.savePreferences.v1';
+const DEFAULT_ADJUSTMENTS=Object.freeze({brightness:100,contrast:100,saturation:100,warmth:0,shadows:0,highlights:0,sharpness:0});
 
 function cloneSerializable(includeImage=false){
-  const data={angle:state.angle,rotation:state.rotation,cropRatio:state.cropRatio,cropZoom:state.cropZoom,cropX:state.cropX,cropY:state.cropY,freeCropAspect:state.freeCropAspect,adjustments:state.adjustments,filterPreset:state.filterPreset,overlays:state.overlays,outputMode:state.outputMode,outputLongEdge:state.outputLongEdge,numberNext:state.numberNext};
+  const data={angle:state.angle,rotation:state.rotation,cropRatio:state.cropRatio,cropZoom:state.cropZoom,cropX:state.cropX,cropY:state.cropY,freeCropAspect:state.freeCropAspect,adjustments:state.adjustments,filterPreset:state.filterPreset,filterStrength:state.filterStrength,overlays:state.overlays,numberNext:state.numberNext};
   if(includeImage)Object.assign(data,{imageDataUrl:state.imageDataUrl,originalDataUrl:state.originalDataUrl,originalWidth:state.originalWidth,originalHeight:state.originalHeight,workingWidth:state.workingWidth,workingHeight:state.workingHeight});
   return JSON.parse(JSON.stringify(data));
 }
 function assignSerializable(s){
   state.angle=s.angle??0;state.rotation=s.rotation??0;state.cropRatio=s.cropRatio||'original';state.cropZoom=s.cropZoom??1;state.cropX=s.cropX??0;state.cropY=s.cropY??0;state.freeCropAspect=s.freeCropAspect||state.freeCropAspect||1;
-  state.adjustments={...(s.adjustments||{brightness:100,contrast:100,saturation:100,warmth:0})};state.filterPreset=s.filterPreset||'standard';state.overlays=JSON.parse(JSON.stringify(s.overlays||[]));
-  state.outputMode=s.outputMode||'original';state.outputLongEdge=s.outputLongEdge||Math.max(state.originalWidth,state.originalHeight,1920);state.numberNext=s.numberNext||1;state.selectedOverlayId=null;state.edgeMapDirty=true;
+  state.adjustments={...DEFAULT_ADJUSTMENTS,...(s.adjustments||{})};state.filterPreset=s.filterPreset||'standard';state.filterStrength=Number.isFinite(Number(s.filterStrength))?Number(s.filterStrength):100;state.overlays=JSON.parse(JSON.stringify(s.overlays||[]));
+  if(Object.prototype.hasOwnProperty.call(s,'outputMode'))state.outputMode=s.outputMode||'original';if(Object.prototype.hasOwnProperty.call(s,'outputLongEdge'))state.outputLongEdge=s.outputLongEdge||Math.max(state.originalWidth,state.originalHeight,1920);state.numberNext=s.numberNext||1;state.selectedOverlayId=null;state.edgeMapDirty=true;
 }
 async function applySnapshot(s){
   if(s.imageDataUrl&&s.imageDataUrl!==state.imageDataUrl){state.image=await loadImage(s.imageDataUrl);state.imageDataUrl=s.imageDataUrl;state.workingWidth=s.workingWidth||state.image.naturalWidth;state.workingHeight=s.workingHeight||state.image.naturalHeight}
@@ -120,6 +127,30 @@ function showToast(message){
 }
 function escapeHtml(value=''){return value.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 
+function editSignature(){
+  return JSON.stringify({angle:state.angle,rotation:state.rotation,cropRatio:state.cropRatio,cropZoom:state.cropZoom,cropX:state.cropX,cropY:state.cropY,freeCropAspect:state.freeCropAspect,adjustments:state.adjustments,filterPreset:state.filterPreset,filterStrength:state.filterStrength,overlays:state.overlays,numberNext:state.numberNext});
+}
+function markEditBaseline(){savedImageDataUrl=state.imageDataUrl||'';savedEditSignature=state.image?editSignature():''}
+function hasUnsavedEdits(){return Boolean(state.image&&(state.imageDataUrl!==savedImageDataUrl||editSignature()!==savedEditSignature))}
+function leaveEditor(action){
+  if(hasUnsavedEdits()&&!window.confirm('保存していない編集があります。編集内容を破棄して戻りますか？'))return;
+  markEditBaseline();action();
+}
+function loadSavePreferences(){
+  let saved={};try{saved=JSON.parse(localStorage.getItem(SAVE_PREFS_KEY)||'{}')||{}}catch(_){saved={}}
+  const formats=['image/jpeg','image/png','image/webp'],qualities=['0.95','0.85','0.70'],sizes=['original','current','3840','1920','1280','custom'];
+  els.saveFormat.value=formats.includes(saved.format)?saved.format:'image/jpeg';
+  els.saveQuality.value=qualities.includes(String(saved.quality))?String(saved.quality):'0.85';
+  els.saveSize.value=sizes.includes(saved.size)?saved.size:'original';
+  els.saveCustomLongEdge.value=String(Math.max(320,Math.min(12000,Number(saved.customLongEdge)||1920)));
+  els.saveCustomRow.hidden=els.saveSize.value!=='custom';
+}
+function persistSavePreferences(){
+  const prefs={format:els.saveFormat.value,quality:els.saveQuality.value,size:els.saveSize.value,customLongEdge:Math.max(320,Math.min(12000,Number(els.saveCustomLongEdge.value)||1920))};
+  try{localStorage.setItem(SAVE_PREFS_KEY,JSON.stringify(prefs))}catch(_){}
+}
+function applySavedOutputPreference(){readOutputControls()}
+
 function buildHelp(){els.helpGrid.innerHTML=helpData.map(([t,d])=>`<div class="help-item"><strong>${t}</strong><span>${d}</span></div>`).join('')}
 function renderToolGrid(category='adjust'){
   els.toolGrid.innerHTML=toolDefinitions[category].map(([id,label,small])=>`<button class="tool-button" type="button" data-tool="${id}">${ICONS[id]}<span>${label}</span><small>${small}</small></button>`).join('');
@@ -138,18 +169,20 @@ async function loadFile(file, sourceRecord=null){
   const dataUrl=await fileToDataUrl(file);const img=await loadImage(dataUrl);
   state=defaultState();state.image=img;state.imageDataUrl=dataUrl;state.originalImage=img;state.originalDataUrl=dataUrl;state.originalWidth=img.naturalWidth||img.width;state.originalHeight=img.naturalHeight||img.height;
   const maxEdge=1800;const scale=Math.min(1,maxEdge/Math.max(state.originalWidth,state.originalHeight));state.workingWidth=Math.max(1,Math.round(state.originalWidth*scale));state.workingHeight=Math.max(1,Math.round(state.originalHeight*scale));
-  state.freeCropAspect=state.workingWidth/state.workingHeight;state.outputMode='original';state.outputLongEdge=Math.max(state.originalWidth,state.originalHeight);
+  state.freeCropAspect=state.workingWidth/state.workingHeight;state.outputMode='original';state.outputLongEdge=Math.max(state.originalWidth,state.originalHeight);applySavedOutputPreference();
   els.imageInfo.textContent=`${state.originalWidth} × ${state.originalHeight}px`;
   els.saveFilename.value=`WORK_PHOTO_${formatDate(new Date(),'compact')}`;
-  syncOutputControls();showEditor();render();updateHistoryButtons();updateSelectionUi();showToast('写真を読み込みました')
+  syncOutputControls();markEditBaseline();showEditor();render();updateHistoryButtons();updateSelectionUi();showToast('写真を読み込みました')
 }
 function fileToDataUrl(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
 function loadImage(src){return new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=src})}
 
 function effectiveFilters(){
-  const p=state.filterPreset;let b=state.adjustments.brightness,c=state.adjustments.contrast,s=state.adjustments.saturation,w=state.adjustments.warmth;
-  if(p==='bright'){b+=10;c+=4}else if(p==='clear'){c+=18;s+=8}else if(p==='warm'){w+=24;s+=5}else if(p==='cool'){w-=24}else if(p==='mono'){s=0;c+=10}else if(p==='document'){b+=8;c+=30;s=Math.max(0,s-45)}else if(p==='vivid'){s+=25;c+=8}
-  return {b:Math.max(0,b),c:Math.max(0,c),s:Math.max(0,s),w};
+  const p=state.filterPreset,a={...DEFAULT_ADJUSTMENTS,...state.adjustments},strength=Math.max(0,Math.min(100,Number(state.filterStrength)||0))/100;
+  let b=a.brightness,c=a.contrast,s=a.saturation,w=a.warmth,sharpness=a.sharpness;
+  const preset={bright:{b:10,c:4},clear:{c:18,s:8,sharpness:28},warm:{w:24,s:5},cool:{w:-24},mono:{s:-100,c:10},document:{b:8,c:30,s:-45,sharpness:18},vivid:{s:25,c:8}}[p]||{};
+  b+=(preset.b||0)*strength;c+=(preset.c||0)*strength;s+=(preset.s||0)*strength;w+=(preset.w||0)*strength;sharpness+=(preset.sharpness||0)*strength;
+  return {b:Math.max(0,b),c:Math.max(0,c),s:Math.max(0,s),w,shadows:a.shadows,highlights:a.highlights,sharpness};
 }
 function normalizedRotation(){return ((state.rotation%360)+360)%360}
 function orientedWorkingSize(){const swap=normalizedRotation()===90||normalizedRotation()===270;return swap?[state.workingHeight,state.workingWidth]:[state.workingWidth,state.workingHeight]}
@@ -176,7 +209,7 @@ function drawTrueOriginal(targetCtx,width,height){
   const iw=state.originalWidth||image.naturalWidth,ih=state.originalHeight||image.naturalHeight,scale=Math.min(width/iw,height/ih),dw=iw*scale,dh=ih*scale;
   targetCtx.save();targetCtx.clearRect(0,0,width,height);targetCtx.filter='none';targetCtx.globalAlpha=1;targetCtx.drawImage(image,(width-dw)/2,(height-dh)/2,dw,dh);targetCtx.restore();
 }
-function drawBase(targetCtx,width,height,original=false){
+function drawBase(targetCtx,width,height,original=false,strictPixels=false){
   if(!state.image)return;if(original){drawTrueOriginal(targetCtx,width,height);return}
   const rot=normalizedRotation(),m=cropMetrics(width,height),filters=effectiveFilters(),warmth=Math.max(-50,Math.min(50,filters.w));
   const offsetX=Math.max(-1,Math.min(1,state.cropX||0))*m.excessX,offsetY=Math.max(-1,Math.min(1,state.cropY||0))*m.excessY;
@@ -184,7 +217,37 @@ function drawBase(targetCtx,width,height,original=false){
   targetCtx.filter=`brightness(${filters.b}%) contrast(${filters.c}%) saturate(${filters.s}%) sepia(${Math.abs(warmth)*0.18}%) hue-rotate(${warmth<0?warmth*0.45:-warmth*0.24}deg)`;
   targetCtx.translate(width/2+offsetX,height/2+offsetY);targetCtx.rotate((rot+state.angle)*Math.PI/180);
   targetCtx.drawImage(state.image,-state.workingWidth*m.scale/2,-state.workingHeight*m.scale/2,state.workingWidth*m.scale,state.workingHeight*m.scale);
-  targetCtx.restore();targetCtx.filter='none';
+  targetCtx.restore();targetCtx.filter='none';applyPixelAdjustments(targetCtx,width,height,filters,{strict:strictPixels});
+}
+function applyPixelAdjustments(targetCtx,width,height,filters,{strict=false}={}){
+  const shadows=Math.max(-100,Math.min(100,Number(filters.shadows)||0)),highlights=Math.max(-100,Math.min(100,Number(filters.highlights)||0)),sharpness=Math.max(0,Math.min(100,Number(filters.sharpness)||0));
+  if(!shadows&&!highlights&&!sharpness)return;
+  let imageData;try{imageData=targetCtx.getImageData(0,0,width,height)}catch(err){console.warn('Pixel adjustment skipped',err);if(strict)throw new Error('PIXEL_ADJUSTMENT_MEMORY');return}
+  const data=imageData.data;
+  if(shadows||highlights){
+    const shadowScale=shadows*.72,highlightScale=highlights*.62;
+    for(let i=0;i<data.length;i+=4){
+      if(!data[i+3])continue;
+      const luminance=(data[i]*.2126+data[i+1]*.7152+data[i+2]*.0722)/255,shadowWeight=(1-luminance)*(1-luminance),highlightWeight=luminance*luminance,delta=shadowScale*shadowWeight+highlightScale*highlightWeight;
+      data[i]=Math.max(0,Math.min(255,data[i]+delta));data[i+1]=Math.max(0,Math.min(255,data[i+1]+delta));data[i+2]=Math.max(0,Math.min(255,data[i+2]+delta));
+    }
+  }
+  if(sharpness&&width>2&&height>2){
+    const rowLength=width*4,amount=(sharpness/100)*.82;
+    let previous=new Uint8ClampedArray(data.subarray(0,rowLength)),current=new Uint8ClampedArray(data.subarray(rowLength,rowLength*2)),next=new Uint8ClampedArray(data.subarray(rowLength*2,rowLength*3));
+    for(let y=1;y<height-1;y++){
+      const rowOffset=y*rowLength;
+      for(let x=1;x<width-1;x++){
+        const i=x*4,out=rowOffset+i;if(!current[i+3])continue;
+        for(let channel=0;channel<3;channel++){
+          const lap=current[i+channel]*4-current[i-4+channel]-current[i+4+channel]-previous[i+channel]-next[i+channel];
+          data[out+channel]=Math.max(0,Math.min(255,current[i+channel]+amount*lap/4));
+        }
+      }
+      previous=current;current=next;const nextOffset=(y+2)*rowLength;next=y+2<height?new Uint8ClampedArray(data.subarray(nextOffset,nextOffset+rowLength)):current;
+    }
+  }
+  targetCtx.putImageData(imageData,0,0);
 }
 function render(){
   if(renderQueued)return;renderQueued=true;requestAnimationFrame(()=>{renderQueued=false;renderNow()})
@@ -194,8 +257,10 @@ function renderNow(){
   drawBase(ctx,w,h,state.compareOriginal);
   if(!state.compareOriginal) drawOverlays(ctx,w,h);
   if(!state.compareOriginal&&state.activeTool==='perspective'&&state.perspectivePoints)drawPerspectiveGuide(ctx,w,h);
+  if(!state.compareOriginal&&state.previewGuide==='horizontal')drawHorizontalGuide(ctx,w,h);
   applyZoom();
 }
+function drawHorizontalGuide(c,w,h){c.save();c.lineWidth=Math.max(1,Math.min(w,h)*.0015);c.strokeStyle='rgba(255,255,255,.72)';c.setLineDash([]);for(const x of [w/3,w*2/3]){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke()}for(const y of [h/3,h/2,h*2/3]){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke()}c.strokeStyle='rgba(20,47,67,.82)';c.lineWidth=Math.max(2,Math.min(w,h)*.0025);c.beginPath();c.moveTo(0,h/2);c.lineTo(w,h/2);c.stroke();c.restore()}
 function ensureOverlayIds(){state.overlays.forEach(o=>{if(!o.id)o.id=uid()})}
 function drawOverlays(targetCtx,w,h){
   ensureOverlayIds();let source=null;
@@ -213,7 +278,7 @@ function drawOverlay(c,o,w,h,sourceCanvas=null){
   else if(o.type==='arrow'||o.type==='line'){drawArrow(c,X(o.x1),Y(o.y1),X(o.x2),Y(o.y2),o.type==='arrow',false,px(.025,w,h))}
   else if(o.type==='dimension'){
     const x1=X(o.x1),y1=Y(o.y1),x2=X(o.x2),y2=Y(o.y2);drawArrow(c,x1,y1,x2,y2,true,true,px(.024,w,h));
-    const mx=(x1+x2)/2,my=(y1+y2)/2;const font=Math.max(16,px(o.fontSize||.04,w,h));c.font=`900 ${font}px ${getComputedStyle(document.body).fontFamily}`;c.textAlign='center';c.textBaseline='middle';const text=o.text||'';const tw=c.measureText(text).width;c.fillStyle='rgba(255,255,255,.92)';roundRect(c,mx-tw/2-8,my-font*.62,tw+16,font*1.24,7);c.fill();c.fillStyle=color;c.fillText(text,mx,my)
+    const text=o.text||'';if(text){const mx=(x1+x2)/2,my=(y1+y2)/2;const font=Math.max(16,px(o.fontSize||.04,w,h));c.font=`900 ${font}px ${getComputedStyle(document.body).fontFamily}`;c.textAlign='center';c.textBaseline='middle';const tw=c.measureText(text).width;c.fillStyle='rgba(255,255,255,.92)';roundRect(c,mx-tw/2-8,my-font*.62,tw+16,font*1.24,7);c.fill();c.fillStyle=color;c.fillText(text,mx,my)}
   }
   else if(['text','date','label'].includes(o.type)){
     const font=Math.max(17,px(o.fontSize||.045,w,h));c.font=`900 ${font}px ${getComputedStyle(document.body).fontFamily}`;c.textAlign='left';c.textBaseline='top';const text=o.text||'';
@@ -283,16 +348,16 @@ function translateOverlay(o,dx,dy){
 function updateAngleText(o){const a1=Math.atan2(o.y1-o.cy,o.x1-o.cx),a2=Math.atan2(o.y2-o.cy,o.x2-o.cx);let d=Math.abs((a2-a1)*180/Math.PI);if(d>180)d=360-d;o.text=`${Math.round(d)}°`}
 function updateSelectionUi(){
   const o=state.overlays.find(x=>x.id===state.selectedOverlayId);if(!o){if(!state.activeTool)els.currentTool.textContent='選択・移動';els.applyTool.hidden=true;return}
-  els.currentTool.textContent=`選択中：${overlayTypeLabel(o.type)}`;els.applyTool.hidden=false;els.applyTool.textContent='色・文字・順序';els.applyTool.onclick=openOverlayProperties
+  els.currentTool.textContent=`選択中：${overlayTypeLabel(o.type)}`;els.applyTool.hidden=false;els.applyTool.textContent=o.type==='dimension'?'寸法・色を編集':'色・文字・順序';els.applyTool.onclick=openOverlayProperties
 }
 function overlayTypeLabel(type){return ({rect:'四角',circle:'円',arrow:'矢印',line:'線',dimension:'寸法',angle:'角度',text:'文字',date:'日付',label:'ラベル',textbox:'文字枠',number:'番号',freehand:'手書き',erase:'透明化',mosaic:'モザイク',blur:'ぼかし',cover:'塗りつぶし',magnify:'部分拡大'})[type]||type}
 function propertyAction(action,message){const before=pendingSnapshot||cloneSerializable();pendingSnapshot=null;state.history.push(before);state.future=[];action();closeSheet(false);updateHistoryButtons();updateSelectionUi();render();showToast(message)}
 function openOverlayProperties(){
-  const o=state.overlays.find(x=>x.id===state.selectedOverlayId);if(!o)return;beginPreviewChange();const hasText=['text','date','label','textbox','dimension','angle'].includes(o.type),isNumber=o.type==='number';
-  openSheet('選択項目を編集',`${overlayTypeLabel(o.type)}の内容と見た目を調整します。`,`${hasText?`<label class="control-group"><strong>文字</strong><input id="propertyText" class="inline-input" maxlength="240" value="${escapeHtml(o.text||'')}"></label>`:''}${isNumber?`<label class="control-group"><strong>番号</strong><input id="propertyNumber" class="inline-input" type="number" min="0" value="${Number(o.value)||0}"></label>`:''}<label class="control-group"><strong>色</strong><input id="propertyColor" type="color" value="${/^#[0-9a-f]{6}$/i.test(o.color||'')?o.color:'#E22636'}"></label>${rangeControl('透明度','propertyOpacity',o.opacity??100,5,100,1,'%')}${rangeControl('線の太さ','propertyWidth',Math.max(1,Math.round((o.lineWidth||.006)*1000)),1,30,1,'')}<label class="control-group"><strong>線種</strong><select id="propertyLineStyle" class="inline-input"><option value="solid">実線</option><option value="dash">破線</option><option value="dot">点線</option><option value="chain">一点鎖線</option></select></label><div class="button-row property-action-row"><button id="propertyDuplicate" class="choice-button" type="button">複製</button><button id="propertyFront" class="choice-button" type="button">一番前へ</button><button id="propertyBack" class="choice-button" type="button">一番後ろへ</button><button id="propertyDelete" class="choice-button danger-choice" type="button">削除</button></div><button id="propertyApply" class="sheet-primary" type="button">決定</button>`,'配置後の編集');
-  const live=()=>{if($('#propertyText'))o.text=$('#propertyText').value;if($('#propertyNumber'))o.value=Number($('#propertyNumber').value)||0;o.color=$('#propertyColor').value;if(o.type==='label')o.background=o.color;o.opacity=Number($('#propertyOpacityRange').value);o.lineWidth=Number($('#propertyWidthRange').value)/1000;o.lineStyle=$('#propertyLineStyle').value;if(o.type==='angle')updateAngleText(o);render()};
-  $('#propertyLineStyle').value=o.lineStyle||'solid';['propertyText','propertyNumber','propertyColor','propertyOpacityRange','propertyWidthRange','propertyLineStyle'].forEach(id=>{const el=$(`#${id}`);if(el)el.oninput=()=>{const out=el.nextElementSibling;if(out&&el.type==='range')out.textContent=`${el.value}${id==='propertyOpacityRange'?'%':''}`;live()}});
-  $('#propertyApply').onclick=()=>{live();commitPreviewChange('選択項目を更新しました');updateSelectionUi()};
+  const o=state.overlays.find(x=>x.id===state.selectedOverlayId);if(!o)return;beginPreviewChange();const hasText=['text','date','label','textbox','angle'].includes(o.type),isNumber=o.type==='number',isDimension=o.type==='dimension';
+  openSheet('選択項目を編集',`${overlayTypeLabel(o.type)}の内容と見た目を調整します。`,`${hasText?`<label class="control-group"><strong>文字</strong><input id="propertyText" class="inline-input" maxlength="240" value="${escapeHtml(o.text||'')}"></label>`:''}${isDimension?`<label class="control-group"><strong>長さ（mm）</strong><input id="propertyDimension" class="inline-input" inputmode="decimal" autocomplete="off" placeholder="例：500" value="${escapeHtml(dimensionValue(o))}"></label>`:''}${isNumber?`<label class="control-group"><strong>番号</strong><input id="propertyNumber" class="inline-input" type="number" min="0" value="${Number(o.value)||0}"></label>`:''}<label class="control-group"><strong>色</strong><input id="propertyColor" type="color" value="${/^#[0-9a-f]{6}$/i.test(o.color||'')?o.color:'#E22636'}"></label>${rangeControl('透明度','propertyOpacity',o.opacity??100,5,100,1,'%')}${rangeControl('線の太さ','propertyWidth',Math.max(1,Math.round((o.lineWidth||.006)*1000)),1,30,1,'')}<label class="control-group"><strong>線種</strong><select id="propertyLineStyle" class="inline-input"><option value="solid">実線</option><option value="dash">破線</option><option value="dot">点線</option><option value="chain">一点鎖線</option></select></label><div class="button-row property-action-row"><button id="propertyDuplicate" class="choice-button" type="button">複製</button><button id="propertyFront" class="choice-button" type="button">一番前へ</button><button id="propertyBack" class="choice-button" type="button">一番後ろへ</button><button id="propertyDelete" class="choice-button danger-choice" type="button">削除</button></div><button id="propertyApply" class="sheet-primary" type="button">決定</button>`,'配置後の編集');
+  const live=()=>{if($('#propertyText'))o.text=$('#propertyText').value;if($('#propertyNumber'))o.value=Number($('#propertyNumber').value)||0;if($('#propertyDimension')){const value=normalizeMillimetres($('#propertyDimension').value);if(value){o.mmValue=value;o.text=`${value} mm`}}o.color=$('#propertyColor').value;if(o.type==='label')o.background=o.color;o.opacity=Number($('#propertyOpacityRange').value);o.lineWidth=Number($('#propertyWidthRange').value)/1000;o.lineStyle=$('#propertyLineStyle').value;if(o.type==='angle')updateAngleText(o);render()};
+  $('#propertyLineStyle').value=o.lineStyle||'solid';['propertyText','propertyNumber','propertyColor','propertyOpacityRange','propertyWidthRange','propertyLineStyle'].forEach(id=>{const el=$(`#${id}`);if(el)el.oninput=()=>{if(el.type==='range'){const valueId=id.replace(/Range$/,'Value'),out=$(`#${valueId}`);if(out)out.textContent=`${el.value}${id==='propertyOpacityRange'?'%':''}`}live()}});
+  $('#propertyApply').onclick=()=>{if($('#propertyDimension')&&!normalizeMillimetres($('#propertyDimension').value)){showToast('長さを数字で入力してください');return}live();commitPreviewChange('選択項目を更新しました');updateSelectionUi()};
   $('#propertyDuplicate').onclick=()=>propertyAction(()=>{const n=JSON.parse(JSON.stringify(o));n.id=uid();translateOverlay(n,.025,.025);state.overlays.push(n);state.selectedOverlayId=n.id},'複製しました');
   $('#propertyFront').onclick=()=>propertyAction(()=>{state.overlays=state.overlays.filter(x=>x!==o);state.overlays.push(o)},'一番前へ移動しました');
   $('#propertyBack').onclick=()=>propertyAction(()=>{state.overlays=state.overlays.filter(x=>x!==o);state.overlays.unshift(o)},'一番後ろへ移動しました');
@@ -310,18 +375,19 @@ function fitCanvasToStage(){if(!state.image)return;const availableW=Math.max(40,
 
 function openTool(id){
   if(!state.image)return;cancelActiveTool(false);$$('.tool-button').forEach(b=>b.classList.toggle('is-active',b.dataset.tool===id));
-  const handlers={horizontal:sheetHorizontal,crop:sheetCrop,rotate:rotate90,color:sheetColor,filter:sheetFilter,perspective:sheetPerspective,size:sheetSize,upscale:sheetUpscale,date:sheetDate,shape:sheetShape,text:sheetText,textbox:sheetTextBox,label:sheetLabel,dimension:sheetDimension,angle:sheetAngle,number:activateNumber,draw:sheetDraw,magnify:activateMagnify,hide:sheetHide,erase:sheetErase,bgselect:sheetBgSelect,compare:sheetCompare,blur:sheetShadow};
+  const handlers={horizontal:sheetHorizontal,crop:sheetCrop,rotate:rotate90,color:sheetColor,filter:sheetFilter,perspective:sheetPerspective,size:sheetSize,upscale:sheetUpscale,reset:sheetResetAll,date:sheetDate,shape:sheetShape,text:sheetText,textbox:sheetTextBox,label:sheetLabel,dimension:sheetDimension,angle:sheetAngle,number:activateNumber,draw:sheetDraw,magnify:activateMagnify,hide:sheetHide,erase:sheetErase,bgselect:sheetBgSelect,compare:sheetCompare,blur:sheetShadow};
   handlers[id]?.();
 }
 function setCurrentTool(label,activeTool=null,hint='',action=null,actionLabel='実行'){state.activeTool=activeTool;els.currentTool.textContent=label;els.cancelTool.hidden=!activeTool;els.applyTool.hidden=!action;els.applyTool.textContent=actionLabel;els.applyTool.onclick=action||null;els.toolHint.hidden=!hint;els.toolHint.textContent=hint;els.canvas.style.cursor=activeTool?'crosshair':'default'}
 function cancelActiveTool(resetButtons=true){state.activeTool=null;state.drawMode=null;state.drawStart=null;state.freePath=null;state.pendingDimension=null;state.perspectivePoints=null;state.perspectiveDragging=-1;state.pendingAngle=null;state.previewOverlay=null;if(state.bgTimer){clearTimeout(state.bgTimer);state.bgTimer=null};els.cancelTool.hidden=true;els.toolHint.hidden=true;els.canvas.style.cursor='default';if(resetButtons)$$('.tool-button').forEach(b=>b.classList.remove('is-active'));updateSelectionUi();render()}
-function openSheet(title,description,html,eyebrow='写真加工'){
+function openSheet(title,description,html,eyebrow='写真加工',variant='default'){
   els.sheetTitle.textContent=title;els.sheetDescription.textContent=description;els.sheetEyebrow.textContent=eyebrow;els.sheetContent.innerHTML=html;els.sheetBackdrop.hidden=false;els.sheet.hidden=false;requestAnimationFrame(()=>els.sheet.scrollTop=0)
+  els.sheet.dataset.variant=variant;els.sheetBackdrop.dataset.variant=variant;document.body.dataset.sheetVariant=variant;requestAnimationFrame(()=>{if(variant==='preview')fitCanvasToStage()})
 }
 function beginPreviewChange(){pendingSnapshot=cloneSerializable()}
 function closeSheet(revert=true){
   if(revert&&pendingSnapshot){const selected=state.selectedOverlayId;assignSerializable(pendingSnapshot);if(state.overlays.some(o=>o.id===selected))state.selectedOverlayId=selected;syncOutputControls();render()}
-  pendingSnapshot=null;els.sheet.hidden=true;els.sheetBackdrop.hidden=true;els.sheetBackdrop.classList.remove('crop-pass-through');
+  pendingSnapshot=null;els.sheet.hidden=true;els.sheetBackdrop.hidden=true;delete els.sheet.dataset.variant;delete els.sheetBackdrop.dataset.variant;delete document.body.dataset.sheetVariant;state.previewGuide=null;els.sheetBackdrop.classList.remove('crop-pass-through');
   if(state.activeTool==='cropPan'){state.activeTool=null;state.cropPointers.clear();state.cropGesture=null;updateSelectionUi()}
 }
 function commitPreviewChange(message=''){
@@ -331,10 +397,10 @@ function commitPreviewChange(message=''){
 function commitSheetChange(){checkpoint();closeSheet(false);state.edgeMapDirty=true;render()}
 
 function sheetHorizontal(){
-  beginPreviewChange();openSheet('水平調整','写真の線にグリッドを合わせます。自動は強い水平線から傾きを推定します。',`
+  beginPreviewChange();state.previewGuide='horizontal';openSheet('水平調整','写真の線にグリッドを合わせます。自動は強い水平線から傾きを推定します。',`
   <div class="control-group"><label><span>傾き</span><b class="control-value" id="angleValue">${state.angle.toFixed(1)}°</b></label><input id="angleRange" type="range" min="-10" max="10" step="0.1" value="${state.angle}"></div>
   <div class="button-row"><button class="choice-button" id="autoHorizon" type="button">自動検出</button><button class="choice-button" id="angleMinus" type="button">−0.1°</button><button class="choice-button" id="anglePlus" type="button">＋0.1°</button><button class="choice-button" id="angleReset" type="button">0°</button></div>
-  <button class="sheet-primary" id="applyHorizontal" type="button">この傾きで決定</button>`);
+  <button class="sheet-primary" id="applyHorizontal" type="button">この傾きで決定</button>`,'写真加工','preview');
   const range=$('#angleRange'),value=$('#angleValue');const update=v=>{state.angle=Number(v);range.value=state.angle;value.textContent=`${state.angle.toFixed(1)}°`;state.edgeMapDirty=true;render()};
   range.oninput=e=>update(e.target.value);$('#angleMinus').onclick=()=>update(state.angle-.1);$('#anglePlus').onclick=()=>update(state.angle+.1);$('#angleReset').onclick=()=>update(0);$('#autoHorizon').onclick=async()=>{showToast('水平線を確認しています');const est=await estimateHorizonAngle();update(est);showToast(`推定 ${est.toFixed(1)}°`)};$('#applyHorizontal').onclick=()=>commitPreviewChange('水平を調整しました')
 }
@@ -353,15 +419,20 @@ function sheetCrop(){
 function rotate90(){checkpoint();state.rotation=(state.rotation+90)%360;state.cropX=0;state.cropY=0;state.edgeMapDirty=true;render();setTimeout(fitCanvasToStage,20);showToast('90°回転しました')}
 function sheetColor(){
   beginPreviewChange();const a=state.adjustments;openSheet('色調整','写真を見ながら、必要な項目だけ動かします。',`
-  ${rangeControl('明るさ','brightness',a.brightness,50,150,1,'%')}${rangeControl('コントラスト','contrast',a.contrast,50,160,1,'%')}${rangeControl('彩度','saturation',a.saturation,0,180,1,'%')}${rangeControl('色温度','warmth',a.warmth,-50,50,1,'')}
-  <div class="button-row"><button class="choice-button" id="autoColor" type="button">自然に補正</button><button class="choice-button" id="resetColor" type="button">初期値</button></div><button class="sheet-primary" id="applyColor" type="button">決定</button>`);
-  const sync=()=>{for(const k of ['brightness','contrast','saturation','warmth']){const input=$(`#${k}Range`),value=$(`#${k}Value`);input.value=state.adjustments[k];value.textContent=`${state.adjustments[k]}${k==='warmth'?'':'%'}`}state.edgeMapDirty=true;render()};
-  ['brightness','contrast','saturation','warmth'].forEach(k=>{const input=$(`#${k}Range`),value=$(`#${k}Value`);input.oninput=e=>{state.adjustments[k]=Number(e.target.value);value.textContent=`${e.target.value}${k==='warmth'?'': '%'}`;state.edgeMapDirty=true;render()}});$('#autoColor').onclick=()=>{state.adjustments={brightness:106,contrast:108,saturation:106,warmth:0};sync()};$('#resetColor').onclick=()=>{state.adjustments={brightness:100,contrast:100,saturation:100,warmth:0};sync()};$('#applyColor').onclick=()=>commitPreviewChange('色調整を反映しました')
+  <p class="strip-hint">横へスワイプ：明るさ・色温度・影・ハイライト・シャープ</p><div class="tone-control-strip" aria-label="色と明暗の調整。横にスクロールできます">${rangeControl('明るさ','brightness',a.brightness,50,150,1,'%')}${rangeControl('コントラスト','contrast',a.contrast,50,160,1,'%')}${rangeControl('彩度','saturation',a.saturation,0,180,1,'%')}${rangeControl('色温度','warmth',a.warmth,-50,50,1,'')}${rangeControl('影','shadows',a.shadows,-100,100,1,'')}${rangeControl('ハイライト','highlights',a.highlights,-100,100,1,'')}${rangeControl('シャープ','sharpness',a.sharpness,0,100,1,'%')}</div>
+  <div class="button-row"><button class="choice-button" id="autoColor" type="button">自然に補正</button><button class="choice-button" id="resetColor" type="button">初期値</button></div><button class="sheet-primary" id="applyColor" type="button">決定</button>`,'写真加工','preview');
+  const keys=['brightness','contrast','saturation','warmth','shadows','highlights','sharpness'],suffix=k=>['brightness','contrast','saturation','sharpness'].includes(k)?'%':'';
+  const sync=()=>{for(const k of keys){const input=$(`#${k}Range`),value=$(`#${k}Value`);input.value=state.adjustments[k];value.textContent=`${state.adjustments[k]}${suffix(k)}`}state.edgeMapDirty=true;render()};
+  keys.forEach(k=>{const input=$(`#${k}Range`),value=$(`#${k}Value`);input.oninput=e=>{state.adjustments[k]=Number(e.target.value);value.textContent=`${e.target.value}${suffix(k)}`;state.edgeMapDirty=true;render()}});$('#autoColor').onclick=()=>{state.adjustments={...DEFAULT_ADJUSTMENTS,brightness:106,contrast:108,saturation:106,shadows:8,highlights:-6,sharpness:8};sync()};$('#resetColor').onclick=()=>{state.adjustments={...DEFAULT_ADJUSTMENTS};sync()};$('#applyColor').onclick=()=>commitPreviewChange('色調整を反映しました')
 }
-function rangeControl(label,id,value,min,max,step,suffix){return `<div class="control-group"><label><span>${label}</span><b class="control-value" id="${id}Value">${value}${suffix}</b></label><input id="${id}Range" type="range" min="${min}" max="${max}" step="${step}" value="${value}"></div>`}
+function rangeControl(label,id,value,min,max,step,suffix){return `<div class="control-group"><label for="${id}Range"><span>${label}</span><b class="control-value" id="${id}Value">${value}${suffix}</b></label><input id="${id}Range" type="range" min="${min}" max="${max}" step="${step}" value="${value}"></div>`}
 function sheetFilter(){
-  beginPreviewChange();const presets=[['standard','標準','加工なし'],['bright','明るめ','少し明るく'],['clear','くっきり','輪郭を強調'],['warm','暖色','温かい色'],['cool','寒色','青寄り'],['mono','白黒','モノクロ'],['document','書類向け','文字を見やすく'],['vivid','鮮やか','色を強める']];openSheet('フィルター','プレビューを見ながら1つ選びます。',`<div class="preset-grid">${presets.map(([v,l,s])=>`<button class="preset-button ${state.filterPreset===v?'is-selected':''}" data-filter="${v}" type="button"><strong>${l}</strong><small>${s}</small></button>`).join('')}</div><button class="sheet-primary" id="applyFilter" type="button">決定</button>`);
-  $$('.preset-button',els.sheetContent).forEach(b=>b.onclick=()=>{state.filterPreset=b.dataset.filter;$$('.preset-button',els.sheetContent).forEach(x=>x.classList.toggle('is-selected',x===b));state.edgeMapDirty=true;render()});$('#applyFilter').onclick=()=>commitPreviewChange('フィルターを反映しました')
+  beginPreviewChange();const presets=[['standard','標準','加工なし'],['bright','明るめ','少し明るく'],['clear','くっきり','輪郭を強調'],['warm','暖色','温かい色'],['cool','寒色','青寄り'],['mono','白黒','モノクロ'],['document','書類向け','文字を見やすく'],['vivid','鮮やか','色を強める']];openSheet('フィルター','プリセットと効き具合を写真を見ながら調整します。',`<p class="strip-hint">横へスワイプしてフィルターを選択</p><div class="filter-preset-strip">${presets.map(([v,l,s])=>`<button class="preset-button ${state.filterPreset===v?'is-selected':''}" data-filter="${v}" type="button"><strong>${l}</strong><small>${s}</small></button>`).join('')}</div>${rangeControl('フィルターの強さ','filterStrength',state.filterStrength,0,100,1,'%')}<button class="sheet-primary" id="applyFilter" type="button">決定</button>`,'写真加工','preview');
+  $$('.preset-button',els.sheetContent).forEach(b=>b.onclick=()=>{state.filterPreset=b.dataset.filter;$$('.preset-button',els.sheetContent).forEach(x=>x.classList.toggle('is-selected',x===b));state.edgeMapDirty=true;render()});const strength=$('#filterStrengthRange'),value=$('#filterStrengthValue');strength.oninput=e=>{state.filterStrength=Number(e.target.value);value.textContent=`${e.target.value}%`;state.edgeMapDirty=true;render()};$('#applyFilter').onclick=()=>commitPreviewChange('フィルターを反映しました')
+}
+function sheetResetAll(){
+  openSheet('全編集を初期状態へ戻す','切り抜き・色調整・フィルター・記入・修正をすべて外し、読み込んだ元写真へ戻します。',`<div class="dialog-note reset-warning"><strong>保存前の編集内容は消えます。</strong><br>実行直後は上部の「戻す」で1回前の状態へ復元できます。</div><button class="sheet-primary reset-all-button" id="confirmResetAll" type="button">全編集を初期状態へ戻す</button>`,'確認');
+  $('#confirmResetAll').onclick=async()=>{const button=$('#confirmResetAll');button.disabled=true;button.textContent='元に戻しています…';try{const original=await loadImage(state.originalDataUrl);checkpoint(true);const outputMode=state.outputMode,outputLongEdge=state.outputLongEdge;state.image=original;state.imageDataUrl=state.originalDataUrl;state.originalImage=original;const maxEdge=1800,scale=Math.min(1,maxEdge/Math.max(state.originalWidth,state.originalHeight));state.workingWidth=Math.max(1,Math.round(state.originalWidth*scale));state.workingHeight=Math.max(1,Math.round(state.originalHeight*scale));state.angle=0;state.rotation=0;state.cropRatio='original';state.cropZoom=1;state.cropX=0;state.cropY=0;state.freeCropAspect=state.workingWidth/state.workingHeight;state.adjustments={...DEFAULT_ADJUSTMENTS};state.filterPreset='standard';state.filterStrength=100;state.overlays=[];state.outputMode=outputMode;state.outputLongEdge=outputLongEdge;state.numberNext=1;state.selectedOverlayId=null;state.edgeMap=null;state.edgeMapDirty=true;closeSheet(false);cancelActiveTool(false);syncOutputControls();updateHistoryButtons();updateSelectionUi();render();setTimeout(fitCanvasToStage,30);showToast('全編集を初期状態へ戻しました')}catch(err){console.error(err);button.disabled=false;button.textContent='全編集を初期状態へ戻す';showToast('元写真へ戻せませんでした')}}
 }
 function sheetPerspective(){openSheet('台形補正','斜めから撮った銘板・書類・操作盤を、四隅を指定して正面の形に整えます。',`<p class="perspective-guide-note">青い1〜4の点を、対象物の左上・右上・右下・左下に合わせます。AIや自動認識は使用しません。</p><button class="sheet-primary" id="startPerspective" type="button">四隅を合わせる</button>`);$('#startPerspective').onclick=()=>{closeSheet();state.perspectivePoints=[{x:.07,y:.07},{x:.93,y:.07},{x:.93,y:.93},{x:.07,y:.93}];setCurrentTool('台形補正：四隅を調整','perspective','青い点を対象の四隅へ動かしてください',applyPerspectiveCorrection,'補正する');render()}}
 function currentEditedLongEdge(){const [w,h]=getCanvasDimensions();return Math.max(w,h)}
@@ -373,9 +444,9 @@ function sheetSize(){
   openSheet('画像サイズ','保存時の長辺をここと保存画面で共通使用します。縦横比は維持されます。',`<div class="preset-grid">${[['original','元写真',`${Math.max(state.originalWidth,state.originalHeight)}px`],['3840','大','3840px'],['1920','標準','1920px'],['1280','小','1280px'],['current','編集サイズ',`${currentEditedLongEdge()}px`]].map(([v,l,s])=>`<button class="preset-button" data-size="${v}" type="button"><strong>${l}</strong><small>${s}</small></button>`).join('')}</div><div class="control-group"><label><span>長辺を直接入力</span></label><input id="customLongEdge" class="inline-input" type="number" min="320" max="12000" value="${outputLongEdge()}"></div><button class="sheet-primary" id="applySize" type="button">保存サイズに設定</button>`);
   $$('.preset-button',els.sheetContent).forEach(b=>b.onclick=()=>{const v=b.dataset.size;if(v==='original'){state.outputMode='original';state.outputLongEdge=Math.max(state.originalWidth,state.originalHeight)}else if(v==='current'){state.outputMode='current';state.outputLongEdge=currentEditedLongEdge()}else{state.outputMode='fixed';state.outputLongEdge=Number(v)}$('#customLongEdge').value=outputLongEdge();$$('.preset-button',els.sheetContent).forEach(x=>x.classList.toggle('is-selected',x===b))});
   $('#customLongEdge').oninput=()=>{state.outputMode='custom';state.outputLongEdge=Math.max(320,Number($('#customLongEdge').value)||1920);$$('.preset-button',els.sheetContent).forEach(x=>x.classList.remove('is-selected'))};
-  $('#applySize').onclick=()=>{if(state.outputMode==='custom')state.outputLongEdge=Math.max(320,Number($('#customLongEdge').value)||1920);syncOutputControls();closeSheet(false);showToast(`長辺 ${outputLongEdge()}px で保存します`)}
+  $('#applySize').onclick=()=>{if(state.outputMode==='custom')state.outputLongEdge=Math.max(320,Number($('#customLongEdge').value)||1920);syncOutputControls();persistSavePreferences();closeSheet(false);showToast(`長辺 ${outputLongEdge()}px で保存します`)}
 }
-function sheetUpscale(){const base=currentEditedLongEdge();openSheet('高解像度で拡大','AI生成は使わず、通常の補間処理で拡大します。元にない細部は生成しません。',`<div class="preset-grid">${[[1,'1倍'],[2,'2倍'],[4,'4倍']].map(([v,l])=>`<button class="preset-button" data-scale="${v}" type="button"><strong>${l}</strong><small>長辺 ${Math.min(12000,base*v)}px</small></button>`).join('')}</div>`);$$('[data-scale]',els.sheetContent).forEach(b=>b.onclick=()=>{state.outputMode='custom';state.outputLongEdge=Math.min(12000,base*Number(b.dataset.scale));syncOutputControls();closeSheet(false);showToast(`長辺 ${state.outputLongEdge}px で保存します`)})}
+function sheetUpscale(){const base=currentEditedLongEdge();openSheet('高解像度で拡大','AI生成は使わず、通常の補間処理で拡大します。元にない細部は生成しません。',`<div class="preset-grid">${[[1,'1倍'],[2,'2倍'],[4,'4倍']].map(([v,l])=>`<button class="preset-button" data-scale="${v}" type="button"><strong>${l}</strong><small>長辺 ${Math.min(12000,base*v)}px</small></button>`).join('')}</div>`);$$('[data-scale]',els.sheetContent).forEach(b=>b.onclick=()=>{state.outputMode='custom';state.outputLongEdge=Math.min(12000,base*Number(b.dataset.scale));syncOutputControls();persistSavePreferences();closeSheet(false);showToast(`長辺 ${state.outputLongEdge}px で保存します`)})}
 function sheetDate(){const today=new Date();const formats=[['dot',formatDate(today,'dot')],['slash',formatDate(today,'slash')],['jp',formatDate(today,'jp')],['short',formatDate(today,'short')]];openSheet('日付','形式を選び、「写真に入れる」を押します。配置後は指で動かせます。',`<div class="preset-grid">${formats.map(([v,l],i)=>`<button class="preset-button ${i===0?'is-selected':''}" data-date="${escapeHtml(l)}" type="button"><strong>${escapeHtml(l)}</strong><small>日付形式</small></button>`).join('')}</div><div class="button-row">${colorButtons()}</div><button class="sheet-primary" id="insertDate" type="button">写真に入れる</button>`);let selected=formats[0][1],color='#E22636';$$('.preset-button',els.sheetContent).forEach(b=>b.onclick=()=>{selected=b.dataset.date;$$('.preset-button',els.sheetContent).forEach(x=>x.classList.toggle('is-selected',x===b))});bindColorChoices(c=>color=c);$('#insertDate').onclick=()=>{checkpoint();state.overlays.push({type:'date',text:selected,x:.68,y:.9,color,fontSize:.035});closeSheet();render();showToast('日付を入れました')}}
 function colorButtons(){return ['#E22636','#0B63CE','#111111','#FFFFFF'].map((c,i)=>`<button class="choice-button color-choice ${i===0?'is-selected':''}" type="button" data-color="${c}" style="color:${c};${c==='#FFFFFF'?'background:#6B7787':''}">●</button>`).join('')}
 function bindColorChoices(callback){$$('.color-choice',els.sheetContent).forEach(b=>b.onclick=()=>{$$('.color-choice',els.sheetContent).forEach(x=>x.classList.toggle('is-selected',x===b));callback(b.dataset.color)})}
@@ -385,18 +456,31 @@ function sheetTextBox(){openSheet('四角の中に文字','文字と背景色・
 function sheetAngle(){openSheet('角度記入','頂点、1本目の線の先、2本目の線の先を順にタップします。',`<div class="dialog-note">表示される値は写真上の見かけの角度です。正確さが必要な場合は、先に台形補正・正面補正を行ってください。</div><div class="button-row">${colorButtons()}</div><button id="startAngle" class="sheet-primary" type="button">角度を配置する</button>`);let color='#E22636';bindColorChoices(c=>color=c);$('#startAngle').onclick=()=>{state.drawColor=color;state.pendingAngle=[];closeSheet();setCurrentTool('角度：3点を選択','angle','頂点をタップしてください')}}
 function sheetBgSelect(){openSheet('長押し背景抜き','消したい背景を長押しすると、近い色がつながる範囲を透明にします。AIは使いません。',`${rangeControl('色の許容範囲','bgSelectThreshold',38,5,120,1,'')}<div class="dialog-note">対象物と背景の色が近い場合は、許容範囲を小さくしてください。透明部分を残すにはPNGで保存します。</div><button id="startBgSelect" class="sheet-primary" type="button">写真上で長押しする</button>`);$('#startBgSelect').onclick=()=>{state.bgThreshold=Number($('#bgSelectThresholdRange').value);els.saveFormat.value='image/png';closeSheet();setCurrentTool('長押し背景抜き','bgselect','消したい色の場所を約0.5秒長押ししてください')}}
 function sheetLabel(){
-  const labels=['旧品','新品','交換品','故障部品','取外し品','取付品','修理前','修理後','交換前','交換後','要交換','要確認','正常','異常','破損','摩耗','漏れ','清掃前','清掃後'];openSheet('ラベル','上下にグリグリ回して、中央の言葉を選びます。',`<div class="wheel-picker" id="labelWheel">${labels.map(l=>`<button class="wheel-option ${l===state.selectedLabel?'is-current':''}" type="button" data-label="${l}">${l}</button>`).join('')}</div><input id="customLabel" class="inline-input" placeholder="自分の言葉を追加して使う"><button class="sheet-primary" id="insertLabel" type="button">選んだ言葉を入れる</button>`);
+  const labels=['旧品','新品','交換品','予備品','故障部品','取外し品','取付品','再使用不可','修理前','修理後','交換前','交換後','要交換','要確認','正常','異常','破損','摩耗','漏れ','清掃前','清掃後'];openSheet('ラベル','上下にグリグリ回して、中央の言葉を選びます。',`<div class="wheel-picker" id="labelWheel">${labels.map(l=>`<button class="wheel-option ${l===state.selectedLabel?'is-current':''}" type="button" data-label="${l}">${l}</button>`).join('')}</div><input id="customLabel" class="inline-input" placeholder="自分の言葉を追加して使う"><button class="sheet-primary" id="insertLabel" type="button">選んだ言葉を入れる</button>`);
   const wheel=$('#labelWheel');let selected=state.selectedLabel;const updateWheel=()=>{const center=wheel.scrollTop+wheel.clientHeight/2;let best=null,dist=Infinity;$$('.wheel-option',wheel).forEach(b=>{const d=Math.abs((b.offsetTop+b.offsetHeight/2)-center);if(d<dist){dist=d;best=b}});if(best){selected=best.dataset.label;$$('.wheel-option',wheel).forEach(x=>x.classList.toggle('is-current',x===best))}};wheel.addEventListener('scroll',()=>requestAnimationFrame(updateWheel));$$('.wheel-option',wheel).forEach(b=>b.onclick=()=>{b.scrollIntoView({block:'center',behavior:'smooth'});selected=b.dataset.label});setTimeout(()=>$('.wheel-option.is-current',wheel)?.scrollIntoView({block:'center'}),50);$('#insertLabel').onclick=()=>{const custom=$('#customLabel').value.trim();if(custom)selected=custom;state.selectedLabel=selected;checkpoint();state.overlays.push({type:'label',text:selected,x:.08,y:.08,background:labelColor(selected),fontSize:.04});closeSheet();render();showToast(`${selected} を入れました`)}}
-function labelColor(t){if(/故障|異常|要交換|破損|漏れ/.test(t))return '#B62032';if(/新品|交換品|取付/.test(t))return '#0B63CE';if(/正常|修理後|清掃後/.test(t))return '#147A42';return '#66758A'}
-function sheetDimension(){openSheet('寸法','横・縦・自由を選び、写真上の始点と終点をタップします。',`<div class="preset-grid"><button class="preset-button" data-dim="horizontal" type="button"><strong>横寸法</strong><small>水平固定</small></button><button class="preset-button" data-dim="vertical" type="button"><strong>縦寸法</strong><small>垂直固定</small></button><button class="preset-button" data-dim="free" type="button"><strong>自由寸法</strong><small>好きな角度</small></button></div><div class="dialog-note">端点は写真内の強い輪郭、画像端、既存図形の端点へ近づくと吸着します。AIではなく輪郭計算を使用します。</div>`);$$('[data-dim]',els.sheetContent).forEach(b=>b.onclick=async()=>{state.dimensionMode=b.dataset.dim;closeSheet();await buildEdgeMap();setCurrentTool('寸法：2点を選択','dimension','始点をタップしてください')})}
-function openDimensionInput(p1,p2){state.pendingDimension={p1,p2};openSheet('寸法を入力','数値と単位を入力してください。',`<div class="button-row"><input id="dimensionValue" class="inline-input" inputmode="decimal" placeholder="例：500" style="flex:1"><select id="dimensionUnit" class="inline-input" style="width:110px"><option>mm</option><option>cm</option><option>m</option></select></div><button class="sheet-primary" id="applyDimension" type="button">寸法を入れる</button>`);$('#applyDimension').onclick=()=>{const val=$('#dimensionValue').value.trim();if(!val){showToast('数値を入力してください');return}checkpoint();state.overlays.push({type:'dimension',x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,text:`${val} ${$('#dimensionUnit').value}`,color:'#E22636',lineWidth:.006,fontSize:.037});state.pendingDimension=null;closeSheet();setCurrentTool('寸法：続けて入力','dimension','次の始点をタップしてください');render()}}
+function labelColor(t){if(/故障|異常|要交換|再使用不可|破損|漏れ/.test(t))return '#B62032';if(/新品|交換品|予備品|取付/.test(t))return '#0B63CE';if(/正常|修理後|清掃後/.test(t))return '#147A42';return '#66758A'}
+function sheetDimension(){openSheet('寸法矢印','向きを選ぶと矢印が写真上に出ます。中央で移動、両端で長さと位置を調整できます。',`<div class="preset-grid"><button class="preset-button" data-dim="horizontal" type="button"><strong>横向き</strong><small>水平の矢印</small></button><button class="preset-button" data-dim="vertical" type="button"><strong>縦向き</strong><small>垂直の矢印</small></button><button class="preset-button" data-dim="free" type="button"><strong>斜め</strong><small>自由角度の矢印</small></button></div><div class="dialog-note">配置後、白い中央点で矢印全体を移動し、両端の白い点で長さを合わせます。矢印をタップすると長さをmmで入力できます。</div>`);$$('[data-dim]',els.sheetContent).forEach(b=>b.onclick=()=>insertDimensionArrow(b.dataset.dim))}
+function insertDimensionArrow(mode='horizontal'){
+  const points=mode==='vertical'?[{x:.5,y:.25},{x:.5,y:.75}]:mode==='free'?[{x:.28,y:.62},{x:.72,y:.38}]:[{x:.25,y:.5},{x:.75,y:.5}];
+  checkpoint();const o={id:uid('dimension'),type:'dimension',x1:points[0].x,y1:points[0].y,x2:points[1].x,y2:points[1].y,text:'',mmValue:'',color:'#E22636',lineWidth:.006,fontSize:.037,opacity:100,lineStyle:'solid'};state.overlays.push(o);state.selectedOverlayId=o.id;state.dimensionMode=mode;closeSheet(false);cancelActiveTool(false);state.selectedOverlayId=o.id;updateSelectionUi();els.toolHint.hidden=false;els.toolHint.textContent='中央で移動／両端で調整／タップでmm入力';setTimeout(()=>{if(!state.activeTool)els.toolHint.hidden=true},4200);render();showToast('矢印を調整してからタップしてください')
+}
+function normalizeMillimetres(value){
+  const ascii=String(value??'').trim().replace(/[０-９．，]/g,ch=>({'０':'0','１':'1','２':'2','３':'3','４':'4','５':'5','６':'6','７':'7','８':'8','９':'9','．':'.','，':','}[ch])).replace(',','.');
+  if(!/^\d+(?:\.\d+)?$/.test(ascii)||Number(ascii)<=0)return '';
+  const [whole,fraction='']=ascii.split('.'),cleanWhole=whole.replace(/^0+(?=\d)/,'')||'0',cleanFraction=fraction.replace(/0+$/,'');return cleanFraction?`${cleanWhole}.${cleanFraction}`:cleanWhole
+}
+function dimensionValue(o){if(o?.mmValue)return String(o.mmValue);const match=String(o?.text||'').match(/([0-9]+(?:\.[0-9]+)?)\s*mm\b/i);return match?.[1]||''}
+function openDimensionInput(o){
+  if(!o||o.type!=='dimension')return;openSheet('長さを入力','矢印の実際の長さをmmで入力します。後から矢印をタップして変更できます。',`<label class="control-group"><strong>長さ（mm）</strong><input id="dimensionValue" class="inline-input" inputmode="decimal" autocomplete="off" placeholder="例：500" value="${escapeHtml(dimensionValue(o))}"></label><button class="sheet-primary" id="applyDimension" type="button">この長さを表示</button>`,'寸法矢印');
+  const input=$('#dimensionValue');setTimeout(()=>{input?.focus();input?.select()},60);$('#applyDimension').onclick=()=>{const value=normalizeMillimetres(input.value);if(!value){showToast('長さを数字で入力してください');return}checkpoint();o.mmValue=value;o.text=`${value} mm`;state.selectedOverlayId=o.id;closeSheet(false);updateSelectionUi();render();showToast(`${value} mm を表示しました`)}
+}
 function activateNumber(){setCurrentTool(`番号：次は ${state.numberNext}`,'number','番号を置く場所をタップしてください')}
 function sheetDraw(){openSheet('手書き・マーカー','種類を選び、写真上を指でなぞります。',`<div class="preset-grid"><button class="preset-button" data-draw="pen" type="button"><strong>ペン</strong><small>はっきり</small></button><button class="preset-button" data-draw="marker" type="button"><strong>マーカー</strong><small>半透明</small></button></div><div class="button-row">${colorButtons()}</div>`);let color='#E22636';bindColorChoices(c=>color=c);$$('[data-draw]',els.sheetContent).forEach(b=>b.onclick=()=>{state.drawColor=color;state.drawMarker=b.dataset.draw==='marker';closeSheet();setCurrentTool(`手書き：${b.textContent.trim()}`,'freehand','指でなぞってください')})}
 function activateMagnify(){setCurrentTool('部分拡大','magnify','拡大したい場所をタップしてください')}
 function sheetHide(){openSheet('隠す','方法を選び、隠したい範囲を指でなぞります。',`<div class="preset-grid"><button class="preset-button" data-hide="mosaic" type="button"><strong>モザイク</strong><small>しっかり隠す</small></button><button class="preset-button" data-hide="blur" type="button"><strong>ぼかし</strong><small>自然に隠す</small></button><button class="preset-button" data-hide="cover" type="button"><strong>塗りつぶし</strong><small>完全に覆う</small></button></div>`);$$('[data-hide]',els.sheetContent).forEach(b=>b.onclick=()=>{state.drawMode=b.dataset.hide;closeSheet();setCurrentTool(`隠す：${b.textContent.trim()}`,b.dataset.hide,'隠したい範囲を指でなぞってください')})}
 function sheetErase(){openSheet('手動切り抜き','自動認識は使わず、指でなぞった部分を透明にします。失敗した場合は「戻す」で復元できます。',`<div class="brush-row"><button class="preset-button" data-brush="0.018" type="button"><strong>細い</strong><small>境界の調整</small></button><button class="preset-button is-selected" data-brush="0.038" type="button"><strong>標準</strong><small>通常の消去</small></button><button class="preset-button" data-brush="0.075" type="button"><strong>太い</strong><small>広い背景</small></button></div><div class="dialog-note">透明部分を保つ場合はPNGで保存します。JPEGでは透明部分が白になります。</div>`);$$('[data-brush]',els.sheetContent).forEach(b=>b.onclick=()=>{state.eraseBrush=Number(b.dataset.brush);els.saveFormat.value='image/png';closeSheet();setCurrentTool(`手動切り抜き：${b.textContent.trim()}`,'eraser','消したい背景を指でなぞってください')})}
 function sheetCompare(){openSheet('2枚比較','現在の写真と、もう1枚の写真を左右または上下にまとめます。',`<label class="control-group"><strong>2枚目の写真</strong><input id="compareFileInput" class="inline-input" type="file" accept="image/*"></label><div class="preset-grid"><button class="preset-button is-selected" data-layout="horizontal" type="button"><strong>左右</strong><small>横に並べる</small></button><button class="preset-button" data-layout="vertical" type="button"><strong>上下</strong><small>縦に並べる</small></button></div><label class="control-group"><strong>表示ラベル</strong><select id="compareLabels" class="inline-input"><option value="旧品|交換品">旧品 ／ 交換品</option><option value="故障品|新品">故障品 ／ 新品</option><option value="修理前|修理後">修理前 ／ 修理後</option><option value="清掃前|清掃後">清掃前 ／ 清掃後</option><option value="取外し前|取付後">取外し前 ／ 取付後</option><option value="写真1|写真2">写真1 ／ 写真2</option></select></label><div class="compare-preview"><span><b>現在の写真</b>1枚目</span><strong>＋</strong><span><b id="compareFileName">未選択</b>2枚目</span></div><button class="sheet-primary" id="applyCompare" type="button" disabled>2枚をまとめる</button>`);let layout='horizontal';const fileInput=$('#compareFileInput'),apply=$('#applyCompare');$$('[data-layout]',els.sheetContent).forEach(b=>b.onclick=()=>{layout=b.dataset.layout;$$('[data-layout]',els.sheetContent).forEach(x=>x.classList.toggle('is-selected',x===b))});fileInput.onchange=()=>{const f=fileInput.files[0];$('#compareFileName').textContent=f?f.name:'未選択';apply.disabled=!f};apply.onclick=async()=>{const file=fileInput.files[0];if(!file)return;apply.disabled=true;apply.textContent='作成中…';try{const labels=$('#compareLabels').value.split('|');await createTwoPhotoComparison(file,layout,labels);closeSheet();showToast('2枚の写真をまとめました')}catch(e){console.error(e);showToast('2枚比較を作成できませんでした')}finally{apply.disabled=false;apply.textContent='2枚をまとめる'}}}
-function sheetShadow(){beginPreviewChange();openSheet('影・反射の調整','AIで消すのではなく、ハイライト・影・明るさを手動調整します。',`${rangeControl('影を明るく','brightness',state.adjustments.brightness,70,140,1,'%')}${rangeControl('反射を抑える','contrast',state.adjustments.contrast,70,140,1,'%')}<button class="sheet-primary" id="applyShadow" type="button">決定</button>`);['brightness','contrast'].forEach(k=>{const input=$(`#${k}Range`),value=$(`#${k}Value`);input.oninput=e=>{state.adjustments[k]=Number(e.target.value);value.textContent=`${e.target.value}%`;render()}});$('#applyShadow').onclick=()=>commitPreviewChange('調整を反映しました')}
+function sheetShadow(){beginPreviewChange();openSheet('影・反射・輪郭','AIは使わず、暗部・明部・輪郭をそれぞれ独立して画像処理します。',`<p class="strip-hint">横へスワイプして3項目を調整</p><div class="tone-control-strip">${rangeControl('影','shadows',state.adjustments.shadows,-100,100,1,'')}${rangeControl('ハイライト','highlights',state.adjustments.highlights,-100,100,1,'')}${rangeControl('シャープ','sharpness',state.adjustments.sharpness,0,100,1,'%')}</div><button class="sheet-primary" id="applyShadow" type="button">決定</button>`,'写真加工','preview');['shadows','highlights','sharpness'].forEach(k=>{const input=$(`#${k}Range`),value=$(`#${k}Value`);input.oninput=e=>{state.adjustments[k]=Number(e.target.value);value.textContent=`${e.target.value}${k==='sharpness'?'%':''}`;state.edgeMapDirty=true;render()}});$('#applyShadow').onclick=()=>commitPreviewChange('影・反射・輪郭を調整しました')}
 
 
 async function removeBackgroundByColor(p){
@@ -419,7 +503,7 @@ function captureEditorCanvas(){
 async function replaceBaseImage(dataUrl){
   const img=await loadImage(dataUrl),baseW=img.naturalWidth||img.width,baseH=img.naturalHeight||img.height;state.image=img;state.imageDataUrl=dataUrl;
   const maxEdge=1800,scale=Math.min(1,maxEdge/Math.max(baseW,baseH));state.workingWidth=Math.max(1,Math.round(baseW*scale));state.workingHeight=Math.max(1,Math.round(baseH*scale));
-  state.angle=0;state.rotation=0;state.cropRatio='original';state.cropZoom=1;state.cropX=0;state.cropY=0;state.freeCropAspect=state.workingWidth/state.workingHeight;state.adjustments={brightness:100,contrast:100,saturation:100,warmth:0};state.filterPreset='standard';state.overlays=[];state.numberNext=1;state.selectedOverlayId=null;state.edgeMap=null;state.edgeMapDirty=true;state.perspectivePoints=null;state.perspectiveDragging=-1;state.pendingAngle=null;if(state.bgTimer){clearTimeout(state.bgTimer);state.bgTimer=null};
+  state.angle=0;state.rotation=0;state.cropRatio='original';state.cropZoom=1;state.cropX=0;state.cropY=0;state.freeCropAspect=state.workingWidth/state.workingHeight;state.adjustments={...DEFAULT_ADJUSTMENTS};state.filterPreset='standard';state.filterStrength=100;state.overlays=[];state.numberNext=1;state.selectedOverlayId=null;state.edgeMap=null;state.edgeMapDirty=true;state.perspectivePoints=null;state.perspectiveDragging=-1;state.pendingAngle=null;if(state.bgTimer){clearTimeout(state.bgTimer);state.bgTimer=null};
   els.imageInfo.textContent=`${baseW} × ${baseH}px（元写真 ${state.originalWidth} × ${state.originalHeight}px）`;render();setTimeout(fitCanvasToStage,30)
 }
 function pointDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
@@ -488,12 +572,12 @@ function endCropPointer(e){state.cropPointers.delete(e.pointerId);const pts=[...
 function beginSelection(p,e){ensureOverlayIds();const hit=hitOverlay(p);if(!hit){state.selectedOverlayId=null;state.selectionDrag=null;updateSelectionUi();render();return}state.selectedOverlayId=hit.overlay.id;state.selectionDrag={pointerId:e.pointerId,handle:hit.handle,start:p,original:JSON.parse(JSON.stringify(hit.overlay)),before:cloneSerializable(),moved:false};updateSelectionUi();render()}
 function resizeSelectedBox(o,orig,p,handle){const q=inverseOverlayPoint(p,orig),min=.025,right=orig.x+orig.w,bottom=orig.y+orig.h;if(handle==='nw'){o.x=Math.min(q.x,right-min);o.y=Math.min(q.y,bottom-min);o.w=right-o.x;o.h=bottom-o.y}else if(handle==='ne'){o.y=Math.min(q.y,bottom-min);o.w=Math.max(min,q.x-orig.x);o.h=bottom-o.y}else if(handle==='se'){o.w=Math.max(min,q.x-orig.x);o.h=Math.max(min,q.y-orig.y)}else if(handle==='sw'){o.x=Math.min(q.x,right-min);o.w=right-o.x;o.h=Math.max(min,q.y-orig.y)}}
 function moveSelection(p){
-  const d=state.selectionDrag;if(!d)return;const o=state.overlays.find(x=>x.id===d.original.id);if(!o)return;Object.assign(o,JSON.parse(JSON.stringify(d.original)));const dx=p.x-d.start.x,dy=p.y-d.start.y,h=d.handle;if(Math.hypot(dx,dy)>.002)d.moved=true;
+  const d=state.selectionDrag;if(!d)return;const o=state.overlays.find(x=>x.id===d.original.id);if(!o)return;Object.assign(o,JSON.parse(JSON.stringify(d.original)));const dx=p.x-d.start.x,dy=p.y-d.start.y,h=d.handle;if(screenDistance(p,d.start)>7)d.moved=true;
   if(h==='move')translateOverlay(o,dx,dy);else if(['nw','ne','se','sw'].includes(h))resizeSelectedBox(o,d.original,p,h);else if(h==='p1'){o.x1=p.x;o.y1=p.y}else if(h==='p2'){o.x2=p.x;o.y2=p.y}else if(h==='center'){o.cx=p.x;o.cy=p.y;updateAngleText(o)}else if(h==='source'){o.sourceX=p.x;o.sourceY=p.y}else if(h==='radius'){o.radius=Math.max(.025,screenDistance(p,{x:o.lensX,y:o.lensY})/Math.min(els.canvas.clientWidth,els.canvas.clientHeight))}else if(h==='scale'){const c=overlayCenter(d.original),start=Math.max(.001,screenDistance(d.start,c)),factor=Math.max(.3,Math.min(4,screenDistance(p,c)/start));if(o.type==='number')o.radius=Math.max(.018,(d.original.radius||.036)*factor);else o.fontSize=Math.max(.018,(d.original.fontSize||.04)*factor)}else if(h==='rotate'){const c=overlayCenter(d.original),a0=Math.atan2((d.start.y-c.y)*els.canvas.clientHeight,(d.start.x-c.x)*els.canvas.clientWidth),a1=Math.atan2((p.y-c.y)*els.canvas.clientHeight,(p.x-c.x)*els.canvas.clientWidth);o.rotation=(d.original.rotation||0)+(a1-a0)*180/Math.PI}
   if(o.type==='angle')updateAngleText(o);render()
 }
 async function endSelection(e){
-  const d=state.selectionDrag;if(!d||d.pointerId!==e.pointerId)return;const o=state.overlays.find(x=>x.id===d.original.id);if(d.moved&&o){if(['arrow','dimension'].includes(o.type)&&(d.handle==='p1'||d.handle==='p2')){const p=await snapPoint({x:o[d.handle==='p1'?'x1':'x2'],y:o[d.handle==='p1'?'y1':'y2']},e);if(d.handle==='p1'){o.x1=p.x;o.y1=p.y}else{o.x2=p.x;o.y2=p.y}}state.history.push(d.before);if(state.history.length>40)state.history.shift();state.future=[];updateHistoryButtons()}state.selectionDrag=null;render()
+  const d=state.selectionDrag;if(!d||d.pointerId!==e.pointerId)return;const o=state.overlays.find(x=>x.id===d.original.id);if(d.moved&&o){if(['arrow','dimension'].includes(o.type)&&(d.handle==='p1'||d.handle==='p2')){const p=await snapPoint({x:o[d.handle==='p1'?'x1':'x2'],y:o[d.handle==='p1'?'y1':'y2']},e);if(d.handle==='p1'){o.x1=p.x;o.y1=p.y}else{o.x2=p.x;o.y2=p.y}}state.history.push(d.before);if(state.history.length>40)state.history.shift();state.future=[];updateHistoryButtons()}else if(o)Object.assign(o,JSON.parse(JSON.stringify(d.original)));const editDimension=!d.moved&&o?.type==='dimension';state.selectionDrag=null;render();if(editDimension)openDimensionInput(o)
 }
 
 els.canvas.addEventListener('pointerdown',async e=>{
@@ -505,9 +589,6 @@ els.canvas.addEventListener('pointerdown',async e=>{
   }
   if(state.activeTool==='bgselect'){state.bgPoint=p;state.bgTimer=setTimeout(()=>{state.bgTimer=null;removeBackgroundByColor(p)},480);return}
   if(state.activeTool==='angle'){state.pendingAngle=state.pendingAngle||[];state.pendingAngle.push(p);if(state.pendingAngle.length===1){els.toolHint.textContent='1本目の線の先をタップしてください'}else if(state.pendingAngle.length===2){els.toolHint.textContent='2本目の線の先をタップしてください'}else{const [c,p1,p2]=state.pendingAngle;const a1=Math.atan2(p1.y-c.y,p1.x-c.x),a2=Math.atan2(p2.y-c.y,p2.x-c.x);let d=Math.abs((a2-a1)*180/Math.PI);if(d>180)d=360-d;checkpoint();state.overlays.push({type:'angle',cx:c.x,cy:c.y,x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,text:`${Math.round(d)}°`,color:state.drawColor||'#E22636',lineWidth:.006,fontSize:.035,opacity:100,lineStyle:'solid'});state.pendingAngle=[];els.toolHint.textContent='次の頂点をタップしてください';render()}return}
-  if(state.activeTool==='dimension'){
-    p=await snapPoint(p,e);if(!state.drawStart){state.drawStart=p;els.toolHint.textContent='終点をタップしてください'}else{let end=constrainPoint(state.drawStart,p,state.dimensionMode);end=await snapPoint(end,e);const start=state.drawStart;state.drawStart=null;openDimensionInput(start,end)}return
-  }
   if(state.activeTool==='number'){checkpoint();state.overlays.push({type:'number',x:p.x,y:p.y,value:state.numberNext++,color:'#E22636'});els.currentTool.textContent=`番号：次は ${state.numberNext}`;render();return}
   if(state.activeTool==='magnify'){checkpoint();state.overlays.push({type:'magnify',sourceX:p.x,sourceY:p.y,lensX:Math.min(.82,p.x+.22),lensY:Math.max(.18,p.y-.18),radius:.11,color:'#E22636'});render();showToast('部分拡大を入れました');return}
   if(state.activeTool==='freehand'){checkpoint();state.drawStart=p;state.freePath={type:'freehand',points:[p],color:state.drawColor||'#E22636',lineWidth:.006,marker:state.drawMarker};state.overlays.push(state.freePath);render();return}
@@ -531,12 +612,12 @@ els.canvas.addEventListener('pointerup',async e=>{
 els.canvas.addEventListener('pointercancel',async e=>{if(state.activeTool==='cropPan')endCropPointer(e);else if(!state.activeTool)await endSelection(e)});
 
 function readOutputControls(){const v=els.saveSize.value;if(v==='original'){state.outputMode='original';state.outputLongEdge=Math.max(state.originalWidth,state.originalHeight)}else if(v==='current'){state.outputMode='current';state.outputLongEdge=currentEditedLongEdge()}else if(v==='custom'){state.outputMode='custom';state.outputLongEdge=Math.max(320,Number(els.saveCustomLongEdge.value)||1920)}else{state.outputMode='fixed';state.outputLongEdge=Number(v)}els.saveCustomRow.hidden=v!=='custom'}
-function plannedOutputDimensions(){const baseW=els.canvas.width,baseH=els.canvas.height,long=outputLongEdge(),scale=long/Math.max(baseW,baseH);let w=Math.max(1,Math.round(baseW*scale)),h=Math.max(1,Math.round(baseH*scale));const maxPixels=32_000_000;if(w*h>maxPixels){const s=Math.sqrt(maxPixels/(w*h));w=Math.floor(w*s);h=Math.floor(h*s)}return [w,h]}
+function plannedOutputDimensions(){const baseW=els.canvas.width,baseH=els.canvas.height,long=outputLongEdge(),scale=long/Math.max(baseW,baseH);let w=Math.max(1,Math.round(baseW*scale)),h=Math.max(1,Math.round(baseH*scale));const mobileDevice=navigator.maxTouchPoints>0||innerWidth<900,maxPixels=mobileDevice?12_000_000:24_000_000;if(w*h>maxPixels){const s=Math.sqrt(maxPixels/(w*h));w=Math.floor(w*s);h=Math.floor(h*s)}return [w,h]}
 function downloadFileBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 async function exportImage(){
   const format=els.saveFormat.value,quality=Number(els.saveQuality.value),filename=(els.saveFilename.value.trim()||'WORK_PHOTO').replace(/[\\/:*?"<>|]/g,'_');
-  readOutputControls();const requested=outputLongEdge(),[targetW,targetH]=plannedOutputDimensions();if(Math.max(targetW,targetH)<requested)showToast('端末負荷を抑えるためサイズを調整しました');
-  const out=document.createElement('canvas');out.width=targetW;out.height=targetH;const oc=out.getContext('2d');oc.imageSmoothingEnabled=true;oc.imageSmoothingQuality='high';drawBase(oc,targetW,targetH,false);drawOverlays(oc,targetW,targetH);if(format==='image/jpeg'){oc.save();oc.globalCompositeOperation='destination-over';oc.fillStyle='#fff';oc.fillRect(0,0,targetW,targetH);oc.restore()}
+  readOutputControls();persistSavePreferences();const requested=outputLongEdge(),[targetW,targetH]=plannedOutputDimensions();if(Math.max(targetW,targetH)<requested)showToast('端末負荷を抑えるためサイズを調整しました');
+  const out=document.createElement('canvas');out.width=targetW;out.height=targetH;const oc=out.getContext('2d');oc.imageSmoothingEnabled=true;oc.imageSmoothingQuality='high';try{drawBase(oc,targetW,targetH,false,true)}catch(error){console.error(error);showToast('端末のメモリが不足しています。保存サイズを「標準 1920px」以下にしてください');return}drawOverlays(oc,targetW,targetH);if(format==='image/jpeg'){oc.save();oc.globalCompositeOperation='destination-over';oc.fillStyle='#fff';oc.fillRect(0,0,targetW,targetH);oc.restore()}
   const blob=await new Promise(resolve=>out.toBlob(resolve,format,quality));if(!blob){showToast('保存用データを作成できませんでした');return}
   const ext=format==='image/png'?'png':format==='image/webp'?'webp':'jpg';const file=new File([blob],`${filename}.${ext}`,{type:format});
   if(els.saveToAppAlbum?.checked && window.WorkPhotoDB){
@@ -545,24 +626,33 @@ async function exportImage(){
       showToast('WORK PHOTOアルバムへ追加しました');
     }catch(err){console.error(err);showToast('アプリ内アルバムへの追加に失敗しました')}
   }
-  try{if(navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'加工した写真'});showToast('端末の保存画面を開きました')}else{downloadFileBlob(blob,file.name);showToast('画像を保存しました')}}catch(err){if(err?.name!=='AbortError'){downloadFileBlob(blob,file.name);showToast('共有を開けなかったため、ダウンロードしました')}}
+  let delivered=false;try{if(navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'加工した写真'});delivered=true;showToast('端末の保存画面を開きました')}else{downloadFileBlob(blob,file.name);delivered=true;showToast('画像を保存しました')}}catch(err){if(err?.name!=='AbortError'){downloadFileBlob(blob,file.name);delivered=true;showToast('共有を開けなかったため、ダウンロードしました')}}if(delivered)markEditBaseline()
 }
-function updateSaveEstimate(){if(!state.image)return;readOutputControls();const [w,h]=plannedOutputDimensions();els.saveEstimate.innerHTML=`編集画面：${els.canvas.width} × ${els.canvas.height}px<br><strong>保存予定：${w} × ${h}px</strong>`}
+function humanApproxBytes(bytes){if(bytes>=1024*1024)return `${(bytes/(1024*1024)).toFixed(bytes>=10*1024*1024?0:1)} MB`;return `${Math.max(1,Math.round(bytes/1024))} KB`}
+function estimateOutputCapacity(w,h){
+  const pixels=w*h,format=els.saveFormat.value,quality=Number(els.saveQuality.value);let low,high;
+  if(format==='image/png'){low=pixels*.8;high=pixels*3.8}
+  else if(format==='image/webp'){const range=quality>=.93?[.18,.62]:quality>=.8?[.11,.45]:[.07,.3];[low,high]=range.map(v=>pixels*v)}
+  else{const range=quality>=.93?[.35,.95]:quality>=.8?[.2,.65]:[.12,.42];[low,high]=range.map(v=>pixels*v)}
+  return `${humanApproxBytes(low)}〜${humanApproxBytes(high)}`;
+}
+function updateSaveEstimate(){if(!state.image)return;readOutputControls();const [w,h]=plannedOutputDimensions(),capacity=estimateOutputCapacity(w,h);els.saveEstimate.innerHTML=`編集画面：${els.canvas.width} × ${els.canvas.height}px<br><strong>保存予定：${w} × ${h}px</strong><br>容量の目安：約 ${capacity}<small>（写真の細かさ・色・透明部分により変動します）</small>`}
 
 function initEvents(){
   els.chooseBtn.onclick=()=>els.chooseInput.click();els.takeBtn.onclick=()=>els.takeInput.click();els.chooseInput.onchange=e=>loadFile(e.target.files[0]);els.takeInput.onchange=e=>loadFile(e.target.files[0]);
-  els.brandHome.onclick=()=>{if(EDITOR_RETURN)location.assign(EDITOR_RETURN);else showStart()};els.headerBack.onclick=()=>{if(EDITOR_RETURN)location.assign(EDITOR_RETURN);else showStart()};if(els.returnAlbum){els.returnAlbum.hidden=!EDITOR_RETURN;els.returnAlbum.onclick=()=>location.assign(EDITOR_RETURN)}els.helpButton.onclick=()=>els.helpDialog.showModal();
+  const goBack=()=>leaveEditor(()=>{if(EDITOR_RETURN)location.assign(EDITOR_RETURN);else showStart()});els.brandHome.onclick=goBack;els.headerBack.onclick=goBack;els.editorBack.onclick=goBack;if(els.returnAlbum){els.returnAlbum.hidden=!EDITOR_RETURN;els.returnAlbum.onclick=goBack}els.helpButton.onclick=()=>els.helpDialog.showModal();
   $$('.tool-tab').forEach(b=>b.onclick=()=>selectCategory(b.dataset.category));els.closeSheet.onclick=()=>closeSheet(true);els.sheetBackdrop.onclick=()=>closeSheet(true);els.cancelTool.onclick=()=>cancelActiveTool();
   els.undo.onclick=undo;els.redo.onclick=redo;els.compare.addEventListener('pointerdown',()=>{state.compareOriginal=true;render()});['pointerup','pointerleave','pointercancel'].forEach(ev=>els.compare.addEventListener(ev,()=>{state.compareOriginal=false;render()}));
   els.zoomRange.oninput=e=>{state.zoom=Number(e.target.value);applyZoom()};els.zoomOut.onclick=()=>{state.zoom=Math.max(5,state.zoom-10);applyZoom()};els.zoomIn.onclick=()=>{state.zoom=Math.min(180,state.zoom+10);applyZoom()};els.fit.onclick=fitCanvasToStage;
-  els.save.onclick=()=>{syncOutputControls();updateSaveEstimate();els.saveDialog.showModal()};[els.saveFormat,els.saveQuality,els.saveSize].forEach(x=>x.onchange=()=>{if(x===els.saveSize)els.saveCustomRow.hidden=els.saveSize.value!=='custom';updateSaveEstimate()});els.saveCustomLongEdge.oninput=updateSaveEstimate;els.cancelSaveTop.onclick=()=>els.saveDialog.close();els.cancelSave.onclick=()=>els.saveDialog.close();els.saveForm.addEventListener('submit',e=>{e.preventDefault();if(e.submitter!==els.confirmSave)return;els.confirmSave.disabled=true;exportImage().finally(()=>{els.confirmSave.disabled=false;els.saveDialog.close()})});
-  window.addEventListener('resize',()=>{if(state.image&&window.innerWidth<1100)fitCanvasToStage()});
+  els.save.onclick=()=>{syncOutputControls();updateSaveEstimate();els.saveDialog.showModal()};[els.saveFormat,els.saveQuality,els.saveSize].forEach(x=>x.onchange=()=>{if(x===els.saveSize){els.saveCustomRow.hidden=els.saveSize.value!=='custom';readOutputControls()}persistSavePreferences();updateSaveEstimate()});els.saveCustomLongEdge.oninput=()=>{readOutputControls();persistSavePreferences();updateSaveEstimate()};els.cancelSaveTop.onclick=()=>els.saveDialog.close();els.cancelSave.onclick=()=>els.saveDialog.close();els.saveForm.addEventListener('submit',e=>{e.preventDefault();if(e.submitter!==els.confirmSave)return;els.confirmSave.disabled=true;exportImage().finally(()=>{els.confirmSave.disabled=false;els.saveDialog.close()})});
+  window.addEventListener('resize',()=>{const currentWidth=window.innerWidth,widthChanged=Math.abs(currentWidth-lastLayoutWidth)>24;if(!state.image){lastLayoutWidth=currentWidth;return}if(widthChanged){lastLayoutWidth=currentWidth;fitCanvasToStage()}});
+  window.addEventListener('beforeunload',e=>{if(!hasUnsavedEdits())return;e.preventDefault();e.returnValue=''})
 }
 
 function registerServiceWorker(){if(!('serviceWorker'in navigator))return;window.addEventListener('load',async()=>{try{const regs=await navigator.serviceWorker.getRegistrations();for(const reg of regs){const path=new URL(reg.scope).pathname.replace(/\/+$/,'/');if(path.endsWith('/editor/'))await reg.unregister()}await navigator.serviceWorker.register('../service-worker.js')}catch(err){console.warn('WORK PHOTO service worker setup skipped',err)}})}
 
 async function bootEditor(){
-  buildHelp();renderToolGrid('adjust');initEvents();registerServiceWorker();
+  loadSavePreferences();buildHelp();renderToolGrid('adjust');initEvents();registerServiceWorker();
   const photoId=EDITOR_PARAMS.get('photoId');
   if(photoId && window.WorkPhotoDB){
     try{

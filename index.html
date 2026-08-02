@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#0b8c89">
+  <meta name="theme-color" content="#142f43">
   <meta name="description" content="WORK PHOTO for Machines - AI FREE PHOTO EDITOR">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
@@ -11,7 +11,8 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="work-series.css">
   <link rel="stylesheet" href="market-base-integration.css">
-  <title>WORK PHOTO for Machines｜Web仕上げ版 v1.6</title>
+  <link rel="stylesheet" href="ui-polish.css">
+  <title>WORK PHOTO for Machines｜実機UX改修版 v1.7</title>
 </head>
 <body>
   <div class="desktop-shell market-base-shell">
@@ -37,8 +38,8 @@
             <strong>カメラを起動します</strong>
             <small>カメラが使えない場合は左下から写真を選べます</small>
           </div>
-          <div class="camera-top-controls">
-            <button id="flashBtn" class="glass-btn" title="フラッシュ／常時ライト">⚡ <span>OFF</span></button>
+          <div class="camera-top-controls" hidden aria-hidden="true">
+            <button id="flashBtn" class="glass-btn" title="常時ライト">⚡ <span>OFF</span></button>
             <select id="cameraMode" class="glass-select" aria-label="撮影モード">
               <option value="factory">工場内撮影</option>
               <option value="standard">標準撮影</option>
@@ -48,14 +49,29 @@
             </select>
             <button id="gpsBtn" class="glass-btn" title="位置情報">⌖ <span>GPS</span></button>
           </div>
-          <div id="cameraHint" class="camera-hint">タップ位置の確認ガイド</div>
+          <div class="camera-overlay-status" aria-live="polite">
+            <span id="cameraModeBadge">標準撮影</span>
+            <span id="cameraAssistBadge" hidden>撮影補助</span>
+          </div>
+          <div id="cameraGuides" class="camera-guides" aria-hidden="true">
+            <i class="guide-line guide-v guide-v1"></i><i class="guide-line guide-v guide-v2"></i>
+            <i class="guide-line guide-h guide-h1"></i><i class="guide-line guide-h guide-h2"></i>
+            <i class="guide-center-v"></i><i class="guide-center-h"></i>
+            <i class="guide-front-frame"></i>
+            <div id="levelGuide" class="level-guide"><span></span></div>
+          </div>
           <div id="focusRing" class="focus-ring" hidden></div>
           <div id="exposurePanel" class="exposure-panel" hidden>
-            <span>☀</span><input id="exposureSlider" type="range" min="-2" max="2" step="0.1" value="0"><output id="exposureValue">0.0</output>
+            <span aria-hidden="true">☀</span><input id="exposureSlider" aria-label="露出・明るさ補正" type="range" min="-2" max="2" step="0.1" value="0"><output id="exposureValue">0.0</output>
           </div>
           <div id="zoomPanel" class="zoom-panel" hidden>
             <input id="zoomSlider" type="range" min="1" max="1" step="0.1" value="1"><output id="zoomValue">1.0×</output>
           </div>
+          <div class="capture-mode-switch" role="group" aria-label="撮影の種類">
+            <button id="photoModeBtn" type="button" class="active" aria-pressed="true">写真</button>
+            <button id="videoModeBtn" type="button" aria-pressed="false">動画</button>
+          </div>
+          <div id="recordingStatus" class="recording-status" hidden><i></i><span id="recordingTime">00:00</span></div>
           <div class="camera-bottom-controls">
             <button id="albumThumbBtn" class="thumb-btn" aria-label="アルバム"><span id="albumThumbEmpty">写真</span><img id="albumThumb" alt="最新写真" hidden></button>
             <button id="shutterBtn" class="shutter" aria-label="撮影"><span></span></button>
@@ -73,6 +89,7 @@
         <div class="section-head">
           <div><h1>アルバム</h1><p>撮影・読み込み・編集した写真</p></div>
           <div class="head-actions">
+            <button id="albumCameraBtn" class="soft-btn">撮影</button>
             <button id="albumImportBtn" class="soft-btn">追加</button>
             <button id="selectModeBtn" class="soft-btn">選択</button>
           </div>
@@ -113,10 +130,9 @@
         </div>
         <div class="viewer-actions">
           <button id="viewerEditBtn" class="primary-small">高機能編集</button>
-          <button id="viewerShareBtn" class="soft-btn">共有</button>
-          <button id="viewerReportBtn" class="soft-btn">写真台帳</button>
-          <button id="viewerInfoBtn" class="soft-btn">情報</button>
-          <button id="viewerDeleteBtn" class="danger-small">削除</button>
+          <button id="viewerShareBtn" class="soft-btn">端末へ保存</button>
+          <button id="viewerInfoBtn" class="soft-btn">詳細</button>
+          <button id="viewerDeleteBtn" class="viewer-delete-link">削除</button>
         </div>
       </section>
 
@@ -166,19 +182,14 @@
         <div class="settings-card">
           <h2>現在のブラウザ版について</h2>
           <p>この動作版はインストール可能なPWAです。MARKET BASEから開いた場合は共通幅・共通ヘッダー位置で表示し、上部の戻る操作からMARKET BASEへ戻れます。撮影・読み込み写真はアプリ内の最近の写真から確認でき、全画面表示、左右移動、編集、共有ができます。スマホ標準の写真アプリへ移す場合は「端末へ保存」または共有機能を使用します。</p>
-          <p><b>Version 1.6｜Web仕上げ版</b></p><p>MARKET BASE PHOTO TOOL V1.4の編集系譜を引き継ぎ、v1.5の統合再基準を経て、撮影・アルバム・高機能編集・Excel写真台帳をWeb版として仕上げました。</p>
+          <p><b>Version 1.7｜実機UX改修版</b></p><p>撮影面積、編集プレビュー、撮影補助、GPS候補、端末保存の導線を実機利用に合わせて整理しました。</p>
         </div>
         <button id="clearAllBtn" class="danger-btn">アプリ内の写真をすべて削除</button>
       </section>
     </main>
 
-    <nav class="bottom-nav">
-      <button data-view="camera" class="active"><span>●</span><b>撮影</b></button>
-      <button data-view="album"><span>▦</span><b>アルバム</b></button>
-      <button data-view="report"><span>▤</span><b>写真台帳</b></button>
-    </nav>
-
     <input id="photoInput" type="file" accept="image/*" multiple hidden>
+    <input id="nativeCameraInput" type="file" accept="image/*" capture="environment" hidden>
     <div id="toast" class="toast" role="status"></div>
     <div id="modal" class="modal-backdrop" hidden><div class="modal-card"><div id="modalContent"></div></div></div>
     </div>
